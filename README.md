@@ -33,3 +33,23 @@ What if one of the functionalities for the creatures was to have some kind of
 immune system, which would have more permissions over other code. What if I
 take some biological inspiration and create first couple of eating functions
 based on some cellular life. Let's test!
+
+--- 
+
+#### 2024-07-01 -- Lua or not to Lua
+
+Two ideas come to mind. Staying fully in cpp, doing the kind of function
+pointer way. How to change the functions? There would need to be some kind of
+functional way how functions (parts of functions) are nested to allow for parts
+of functions to be changed easily. Other than the implementation details, I
+most likely know all what needs to be done for it which seems like a big PLUS.
+
+On the other hand, WHAT ABOUT LUA SCRIPTING? I've read about easy easy ways how
+to add Lua scripting to cpp projects. Although, I've never done it but it
+doesn't seem that difficult from what I've found and read so far. It would
+allow for functions to be created on fly which would make all of it much more
+dynamic (function modification, code injection, small changes, ...).
+
+I'm leaning towards Lua, while little scared because I've never done Lua :D.
+But I think both approaches are worth a try and I want to give them both a fair
+chance!
