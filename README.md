@@ -54,8 +54,34 @@ I'm leaning towards Lua, while little scared because I've never done Lua :D.
 But I think both approaches are worth a try and I want to give them both a fair
 chance!
 
-### 2024-10-22 13:10 -- Tierra was what I was looking for...
+#### 2024-10-22 13:10 -- Tierra was what I was looking for...
 
 [Tierra](https://faculty.cc.gatech.edu/~turk/bio_sim/articles/tierra_thomas_ray.pdf)
 is the inspiration and I just might start with that... better than what I was
 doing till this point... just thinking and not doing s***.
+
+The innitial idea was fine, BUT it is probably the best idea to go as low as
+possible with the chosen language. Selection of assembler makes me scared, but
+there's the challenge! It provides much easier control over the creatures and
+the whole sim runtime.
+
+***
+
+Taking notes from above, actually doing custom ISA (instruction set
+architecture), sounds like a bunch of pain, BUT it might actually be fun and
+enable me doing some nice things different than the original work.
+
+What kind of things would I like to see in my ISA?
+
+ | Imp. | Inst.     | Descr.                                                  |
+ |------|-----------|---------------------------------------------------------|
+ | 🔴   | Jump      | jump to point                                           |
+ | 🔴   | Call      | function call                                           |
+ | 🔴   | Stack     | stack for jumping and retrieval |
+ | 🔴   | Ret       | ret from function call                                  |
+ | 🔴   | If        | some conditioned jump (based on test register value?)   |
+ | 🔴   | Find(dir) | search for some point in code - get address to register |
+ | 🔴   | Add       | +1 to reg                                               |
+ | 🔴   | Sub       | -1 to reg                                               |
+ | 🔴   | Move      | move data between registers                             |
+
