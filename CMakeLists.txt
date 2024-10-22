@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+project(EvoScripts)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED On)
+set(CMAKE_CXX_EXTENSIONS Off)
+
+file(GLOB_RECURSE SOURCE_FILES
+    ${CMAKE_SOURCE_DIR}/src/*.cpp)
+
+file(GLOB_RECURSE HEADER_FILES
+    ${CMAKE_SOURCE_DIR}/src/*.hpp)
+
+include_directories(${CMAKE_BINARY_DIR}/src)
+
+add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})

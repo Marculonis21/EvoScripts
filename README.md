@@ -53,3 +53,9 @@ dynamic (function modification, code injection, small changes, ...).
 I'm leaning towards Lua, while little scared because I've never done Lua :D.
 But I think both approaches are worth a try and I want to give them both a fair
 chance!
+
+### 2024-10-22 13:10 -- Tierra was what I was looking for...
+
+[Tierra](https://faculty.cc.gatech.edu/~turk/bio_sim/articles/tierra_thomas_ray.pdf)
+is the inspiration and I just might start with that... better than what I was
+doing till this point... just thinking and not doing s***.
