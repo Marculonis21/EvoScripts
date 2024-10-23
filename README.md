@@ -71,17 +71,20 @@ Taking notes from above, actually doing custom ISA (instruction set
 architecture), sounds like a bunch of pain, BUT it might actually be fun and
 enable me doing some nice things different than the original work.
 
-What kind of things would I like to see in my ISA? (Get Miguel on board!)
+What kind of things would I like to see in my ISA? (Get Miguel on board!!!)
 
-| Imp. | Inst. | Descr.                                                      |
-|------|-------|-------------------------------------------------------------|
-| 🔴   | Stack | stack for jumping and retrieval                             |
-| 🔴   | Regs  | a few arbitrary registers                                   |
-| 🔴   | Jump  | jump to point                                               |
-| 🔴   | Call  | function call                                               |
-| 🔴   | Ret   | ret from function call                                      |
-| 🔴   | If    | some conditioned jump (based on test register values only?) |
-| 🔴   | Add   | +1 to reg                                                   |
-| 🔴   | Sub   | -1 to reg                                                   |
-| 🔴   | Move  | move data between registers                                 |
-| 🔴   | Move  | move data via indirect addressing (only for some regs)      |
+| Imp. | Inst.   | Descr.                                                      |
+|------|---------|-------------------------------------------------------------|
+| 🔴   | Stack   | stack for call and retrieval                                |
+| 🔴   | Regs    | a few arbitrary registers                                   |
+| 🔴   | Jump    | jump to point                                               |
+| 🔴   | Call    | function call                                               |
+| 🔴   | Ret     | ret from function call                                      |
+| 🔴   | If      | some conditioned jump (based on test register values only?) |
+| 🔴   | Add     | +1 to reg                                                   |
+| 🔴   | Sub     | -1 to reg                                                   |
+| 🔴   | Reg Sub | (reg = rega - regb) calc might be necessary                 |
+| 🔴   | Move    | move data between registers                                 |
+| 🔴   | Move    | move data via indirect addressing (only for some regs?)     |
+
+***
