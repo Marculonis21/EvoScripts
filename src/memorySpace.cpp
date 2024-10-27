@@ -1,10 +1,14 @@
 #include "memorySpace.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <utility>
 #include <vector>
+#include <iostream>
 
-Basic1D::Basic1D(uint64_t size) { memory = std::vector<uint8_t>(size); }
+Basic1D::Basic1D(uint64_t size) { 
+    memory = std::vector<uint8_t>(size); 
+}
 
 uint8_t Basic1D::fetch(uint64_t address) const { 
     return memory[address];
@@ -13,19 +17,25 @@ uint64_t Basic1D::allocate(uint64_t startAddress, uint64_t size) const {
     return 0;
 }
 
+uint64_t BaseMemoryType::getMemorySize() const { 
+    return memory.size();
+}
+
 templateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
     uint64_t res = 0;
     uint8_t offset = 0;
 
     while (true) {
-        offset++;
-        switch (fetch(address+offset)) {
+        // start loading after the original instr address
+        switch (fetch(address+1+offset)) {
             case 0x01:                      // nop0 
                 break;
             case 0x02: res |= 1 << offset;  // nop1
                 break;
-            default:   return templateInfo{res, --offset};
+            default:   return templateInfo{res, offset};
         }
+
+        offset++;
     }
 }
 
@@ -33,12 +43,14 @@ uint64_t BaseMemoryType::matchTemplate(uint64_t address, templateInfo pattern) c
     // TODO: should be refactored and TESTED!
 
     // vector of hit pairs - start address, distance from start
-    std::vector<std::pair<uint64_t, int>> hitVector;
+    std::vector<std::pair<uint64_t, float>> hitVector;
 
-    const int searchSize = 5;
+    const int searchSize = 30;
 
     // search backward
-    uint64_t startPoint = std::max(address - searchSize,(uint64_t)0);
+    
+    uint64_t startPoint = address < searchSize ? 0 : address - searchSize;
+    std::cout << "backward sp:" <<startPoint << std::endl;
 
     uint8_t offset = 0;
     uint64_t check = 0;
@@ -57,10 +69,14 @@ uint64_t BaseMemoryType::matchTemplate(uint64_t address, templateInfo pattern) c
         }
         else {
             if (offset >= pattern.patternSize){
+                std::cout << "finished pattern at addr" << i << std::endl;
+                std::cout << "found pattern: " << check << std::endl;
                 test = pattern.pattern ^ check;
+                std::cout << "test xor result: " << test << std::endl;
                 if (((test + 1) & test) == 0) {
                     // matching pattern found! -- save first pos of template, distance from starting address
-                    hitVector.emplace_back(i - offset, address - (i - offset));
+                    std::cout << "MATCH" << std::endl;
+                    hitVector.emplace_back(i - offset, (address - (i - offset))/float(searchSize));
                 }
             }
 
@@ -71,6 +87,7 @@ uint64_t BaseMemoryType::matchTemplate(uint64_t address, templateInfo pattern) c
 
     // forward
     startPoint = address + pattern.patternSize + 1;
+    std::cout << "forward sp:" <<startPoint << std::endl;
 
     for (int i = startPoint; i < startPoint+searchSize; ++i) {
         instr = fetch(i);
@@ -82,9 +99,13 @@ uint64_t BaseMemoryType::matchTemplate(uint64_t address, templateInfo pattern) c
         }
         else {
             if (offset >= pattern.patternSize){
+                std::cout << "finished pattern at addr" << i << std::endl;
+                std::cout << "found pattern: " << check << std::endl;
                 test = pattern.pattern ^ check;
+                std::cout << "test xor result: " << test << std::endl;
                 if (((test + 1) & test) == 0) {
                     // matching pattern found! -- save first pos of template, distance from starting address
+                    std::cout << "MATCH" << std::endl;
                     hitVector.emplace_back(i - offset, address - (i - offset));
                 }
             }
