@@ -6,15 +6,16 @@
 #include <vector>
 #include <iostream>
 
+bool memorySpace::contains(uint64_t address) const {
+    return start <= address && address < start+size;
+}
+
 Basic1D::Basic1D(uint64_t size) { 
     memory = std::vector<uint8_t>(size); 
 }
 
 uint8_t Basic1D::fetch(uint64_t address) const { 
     return memory[address];
-}
-uint64_t Basic1D::allocate(uint64_t startAddress, uint64_t size) const {
-    return 0;
 }
 
 uint64_t BaseMemoryType::getMemorySize() const { 
@@ -39,7 +40,8 @@ templateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
     }
 }
 
-uint64_t BaseMemoryType::matchTemplate(uint64_t address, templateInfo pattern) const {
+
+matchResult BaseMemoryType::matchTemplate(uint64_t address, const templateInfo &pattern) const {
     // TODO: should be refactored and TESTED!
 
     // vector of hit pairs - start address, distance from start
@@ -48,7 +50,6 @@ uint64_t BaseMemoryType::matchTemplate(uint64_t address, templateInfo pattern) c
     const int searchSize = 30;
 
     // search backward
-    
     uint64_t startPoint = address < searchSize ? 0 : address - searchSize;
     std::cout << "backward sp:" <<startPoint << std::endl;
 
@@ -117,10 +118,23 @@ uint64_t BaseMemoryType::matchTemplate(uint64_t address, templateInfo pattern) c
 
     // choose some of the hit templates
     
-    // TODO: some sort of exception?
-    if (hitVector.size() > 0) { return -1; }
+    if (hitVector.size() > 0) return matchResult{false, 0};
 
     // TODO: CHECK THIS
     std::random_shuffle(hitVector.begin(), hitVector.end());
-    return hitVector[0].first;
+    return matchResult{true, hitVector[0].first};
+}
+
+bool BaseMemoryType::write(const memorySpace &lpuSpace, uint64_t address, uint8_t payload) {
+    if (!lpuSpace.contains(address)) return false;
+
+    memory[address] = payload;
+    return true;
+}
+
+bool BaseMemoryType::copy(const memorySpace &lpuSpace, uint64_t addressFrom, uint64_t addressTo) {
+    if (!lpuSpace.contains(addressTo)) return false;
+
+    memory[addressTo] = memory[addressFrom];
+    return true;
 }

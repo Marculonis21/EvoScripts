@@ -75,31 +75,33 @@ class LPU {
 
 	std::shared_ptr<BaseMemoryType> memPtr;
 
-	void decode(uint8_t instr, uint64_t address);
+	memorySpace memoryRecord;
+
+	bool decode(uint8_t instr, uint64_t address);
 
 	// instruction set
-	void nop0   (uint64_t address);
-	void nop1   (uint64_t address);
-	void jmp    (uint64_t address);
-	void cjmp   (uint64_t address);
-	void find   (uint64_t address);
-	void call   (uint64_t address);
-	void ret    (uint64_t address);
-	void add_a  (uint64_t address);
-	void add_b  (uint64_t address);
-	void sub_a  (uint64_t address);
-	void sub_b  (uint64_t address);
-	void sub_ab (uint64_t address);
-	void mov    (uint64_t address);
-	void movi   (uint64_t address);
-	void push_a (uint64_t address);
-	void push_b (uint64_t address);
-	void push_c (uint64_t address);
-	void pop_a  (uint64_t address);
-	void pop_b  (uint64_t address);
-	void pop_c  (uint64_t address);
-	void maloc  (uint64_t address);
-	void divide (uint64_t address);
+	bool nop0   (uint64_t address);
+	bool nop1   (uint64_t address);
+	bool jmp    (uint64_t address);
+	bool cjmp   (uint64_t address);
+	bool find   (uint64_t address);
+	bool call   (uint64_t address);
+	bool ret    (uint64_t address);
+	bool add_a  (uint64_t address);
+	bool add_b  (uint64_t address);
+	bool sub_a  (uint64_t address);
+	bool sub_b  (uint64_t address);
+	bool sub_ab (uint64_t address);
+	/* bool mov    (uint64_t address); */
+	bool movi   (uint64_t address);
+	bool push_a (uint64_t address);
+	bool push_b (uint64_t address);
+	bool push_c (uint64_t address);
+	bool pop_a  (uint64_t address);
+	bool pop_b  (uint64_t address);
+	bool pop_c  (uint64_t address);
+	bool maloc  (uint64_t address);
+	bool divide (uint64_t address);
 
 };
 
