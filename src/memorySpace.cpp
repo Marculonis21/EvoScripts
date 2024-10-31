@@ -1,25 +1,83 @@
 #include "memorySpace.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <memory>
 #include <utility>
 #include <vector>
 #include <iostream>
+#include <random>
 
 bool memorySpace::contains(uint64_t address) const {
     return start <= address && address < start+size;
 }
 
-Basic1D::Basic1D(uint64_t size) { 
-    memory = std::vector<uint8_t>(size); 
+BaseMemoryType::BaseMemoryType(uint64_t size) { 
+    memory = std::vector<uint8_t>(size, 0); 
 }
 
-uint8_t Basic1D::fetch(uint64_t address) const { 
+uint8_t BaseMemoryType::fetch(uint64_t address) const { 
     return memory[address];
 }
 
 uint64_t BaseMemoryType::getMemorySize() const { 
     return memory.size();
+}
+
+memorySpace BaseMemoryType::allocate(uint64_t address, uint64_t size) const { 
+    std::default_random_engine generator;
+
+    for (int i = 1; i < 10; ++i) {
+        std::normal_distribution<double> distribution(0.0, 2*i);
+        double fOffset = fabs(distribution(generator));
+        uint64_t testOffset = size*fOffset;
+
+        // check backwards
+        uint64_t backCheck;
+        if (testOffset > address) {
+            backCheck = 0;
+        }
+        else {
+            backCheck = address - testOffset;
+        }
+
+        // THIS IS FUCKING UGLY!!! TODO: DO IT BETTER
+        bool foundOtherBack = false;
+        for (int x = backCheck; x < backCheck + size; ++x) {
+            // anything else than 0
+            if (memory[x]) {
+                foundOtherBack = true;
+                break;
+            }
+        }
+        if (!foundOtherBack) {
+            return memorySpace{backCheck, size};
+        }
+
+        // check forwards
+        uint64_t forwardCheck;
+        if (testOffset + address + size >= getMemorySize()) {
+            forwardCheck = getMemorySize() - size;
+        }
+        else {
+            forwardCheck = address + testOffset;
+        }
+        
+        bool foundOtherFront = false;
+        for (int x = forwardCheck; x < forwardCheck + size; ++x) {
+            // anything else than 0
+            if (memory[x]) {
+                foundOtherFront = true;
+                break;
+            }
+        }
+        if (!foundOtherFront) {
+            return memorySpace{forwardCheck, size};
+        }
+    }
+
+    return memorySpace{0, 0};
 }
 
 templateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {

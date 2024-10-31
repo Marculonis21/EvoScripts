@@ -11,26 +11,29 @@ struct templateInfo {
 
 struct matchResult {
 	bool success = false;
-	uint64_t address;
+	uint64_t address = 0;
 };
 
 struct memorySpace {
-	uint64_t start;
-	uint64_t size;
+	uint64_t start = 0;
+	uint64_t size = 0;
 
 	bool contains(uint64_t address) const;
 };
 
 class BaseMemoryType {
   public:
-	virtual uint8_t fetch(uint64_t address) const = 0;
+	BaseMemoryType(uint64_t size);
+
+	virtual uint8_t fetch(uint64_t address) const;
+
+	virtual memorySpace allocate(uint64_t address, uint64_t size) const;
 
 	virtual bool write(const memorySpace &lpuSpace, uint64_t addressTo, uint8_t payload);
 	virtual bool copy(const memorySpace &lpuSpace, uint64_t addressFrom, uint64_t addressTo);
 
 	virtual templateInfo loadInTemplate(uint64_t address) const;
-	virtual matchResult matchTemplate(uint64_t address,
-			const templateInfo &pattern) const;
+	virtual matchResult matchTemplate(uint64_t address, const templateInfo &pattern) const;
 
     virtual uint64_t getMemorySize() const;
 
@@ -38,10 +41,5 @@ class BaseMemoryType {
 	std::vector<uint8_t> memory;
 };
 
-class Basic1D : public BaseMemoryType {
-  public:
-	Basic1D(uint64_t size);
-	uint8_t fetch(uint64_t address) const override;
-};
 
 #endif

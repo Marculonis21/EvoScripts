@@ -1,8 +1,9 @@
 #include "lpu.hpp"
 #include "memorySpace.hpp"
 
-LPU::LPU(const std::shared_ptr<BaseMemoryType> &memPtr, uint64_t ipStart) {
+LPU::LPU(const std::shared_ptr<BaseMemoryType> &memPtr, memorySpace memoryRecord, uint64_t ipStart) {
 	this->memPtr = memPtr;
+	this->memoryRecord = memoryRecord;
 	ip = ipStart;
 	regA, regB, regC = uint64_t();
 }
@@ -125,11 +126,51 @@ bool LPU::movi(uint64_t address) {
 	return memPtr->copy(memoryRecord, regA, regB);
 }
 
-bool LPU::push_a(uint64_t address) {}
-bool LPU::push_b(uint64_t address) {}
-bool LPU::push_c(uint64_t address) {}
-bool LPU::pop_a(uint64_t address) {}
-bool LPU::pop_b(uint64_t address) {}
-bool LPU::pop_c(uint64_t address) {}
-bool LPU::maloc(uint64_t address) {}
+bool LPU::push_a(uint64_t address) {
+	stack.push(regA);
+	return true;
+}
+
+bool LPU::push_b(uint64_t address) {
+	stack.push(regB);
+	return true;
+}
+
+bool LPU::push_c(uint64_t address) {
+	stack.push(regC);
+	return true;
+}
+bool LPU::pop_a(uint64_t address) {
+	if (stack.empty()) return false;
+
+	regA = stack.top();
+	return true;
+}
+bool LPU::pop_b(uint64_t address) {
+	if (stack.empty()) return false;
+
+	regB = stack.top();
+	return true;
+}
+bool LPU::pop_c(uint64_t address) {
+	if (stack.empty()) return false;
+
+	regC = stack.top();
+	return true;
+}
+
+/*
+ * Get new memorySpace with size from regC (or some other reg???) and return it's address to the same reg 
+ */
+bool LPU::maloc(uint64_t address) {
+	// maloc size has to be bigger than 0
+	if (regC == 0) return false;
+
+	memoryRecordOffspring = memPtr->allocate(address, regC);
+
+	if (memoryRecordOffspring.size == 0) return false;
+
+	return true;
+}
+
 bool LPU::divide(uint64_t address) {}

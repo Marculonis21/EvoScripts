@@ -10,7 +10,7 @@
 
 class LPU {
   public:
-	LPU(const std::shared_ptr<BaseMemoryType> &memPtr, uint64_t ipStart);
+	LPU(const std::shared_ptr<BaseMemoryType> &memPtr, memorySpace memoryRecord, uint64_t ipStart);
 	bool step();
 
 	static std::string decode_tostring(uint8_t instr) {
@@ -76,6 +76,7 @@ class LPU {
 	std::shared_ptr<BaseMemoryType> memPtr;
 
 	memorySpace memoryRecord;
+	memorySpace memoryRecordOffspring;
 
 	bool decode(uint8_t instr, uint64_t address);
 
