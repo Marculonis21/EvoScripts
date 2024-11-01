@@ -92,3 +92,11 @@ What kind of things would I like to see in my ISA? (Get Miguel on board!!!)
  | <ul><li>- [x] </li></ul> | Zero_Reg    | reset some reg to zero                                      |
 
 ***
+
+#### 2024-11-01 14:55 -- To Become a Rustling or not to become a Rustling
+
+I'm seriously thinking about doing this project in Rust as well! I'm not sure
+if I'm proficient enough... BUT it woudl be a great exercise plus I see a bunch
+of places where I would love the syntax of Rust to help, Result values, return
+enum types and stuff like that! Might want to try to finish this in C++ and do
+a test run rewriting it into Rust. Might be fun!
