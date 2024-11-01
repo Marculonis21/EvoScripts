@@ -2,15 +2,14 @@
 #define LPU_HPP
 
 #include "memorySpace.hpp"
+#include "manager.hpp"
 #include <cstdint>
-#include <iostream>
-#include <memory>
 #include <stack>
 #include <string>
 
 class LPU {
   public:
-	LPU(const std::shared_ptr<BaseMemoryType> &memPtr, memorySpace memoryRecord, uint64_t ipStart);
+	LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord);
 	bool step();
 
 	static std::string decode_tostring(uint8_t instr) {
@@ -73,7 +72,9 @@ class LPU {
 	uint64_t ip;
 	std::stack<uint64_t> stack;
 
-	std::shared_ptr<BaseMemoryType> memPtr;
+	// just observers so I won't care about dangling pointers
+	BaseMemoryType *memPtr;
+	Manager *managerPtr;
 
 	memorySpace memoryRecord;
 	memorySpace memoryRecordOffspring;

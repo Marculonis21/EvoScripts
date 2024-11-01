@@ -1,21 +1,18 @@
 #include "lpu.hpp"
 #include "memorySpace.hpp"
 
-LPU::LPU(const std::shared_ptr<BaseMemoryType> &memPtr, memorySpace memoryRecord, uint64_t ipStart) {
+LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord) {
 	this->memPtr = memPtr;
+	this->managerPtr = managerPtr;
 	this->memoryRecord = memoryRecord;
-	ip = ipStart;
+	ip = memoryRecord.start;
 	regA, regB, regC = uint64_t();
 }
 
 bool LPU::step() {
-	std::cout << "step ip: " << ip << std::endl;
 	uint8_t fetchedInstr = memPtr->fetch(ip);
 
-	bool result = decode(fetchedInstr, ip);
-
-	
-	/* return true; */
+	return decode(fetchedInstr, ip);
 }
 
 bool LPU::decode(uint8_t instr, uint64_t address) {
@@ -83,8 +80,12 @@ bool LPU::find(uint64_t address) {
 }
 
 
-bool LPU::call(uint64_t address) {}
-bool LPU::ret(uint64_t address) {}
+bool LPU::call(uint64_t address) {
+
+}
+bool LPU::ret(uint64_t address) {
+
+}
 
 /*
  * simple add_X, sub_X operations on registers
@@ -165,6 +166,8 @@ bool LPU::pop_c(uint64_t address) {
 bool LPU::maloc(uint64_t address) {
 	// maloc size has to be bigger than 0
 	if (regC == 0) return false;
+	// cannot allocate another space when one offspring already exists
+	if (memoryRecordOffspring.size != 0) return false;
 
 	memoryRecordOffspring = memPtr->allocate(address, regC);
 
@@ -174,4 +177,11 @@ bool LPU::maloc(uint64_t address) {
 }
 
 bool LPU::divide(uint64_t address) {
+	// offspring must be at least allocated
+	if (memoryRecordOffspring.size == 0) return false;
+
+	managerPtr->addLpu(memoryRecordOffspring);
+	memoryRecordOffspring = memorySpace(); // reset memoryRecordOffspring
+
+	return true;
 }
