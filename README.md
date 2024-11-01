@@ -75,20 +75,20 @@ What kind of things would I like to see in my ISA? (Get Miguel on board!!!)
 
  | Imp.                    | Inst./Feat. | Descr.                                                      |
  |-------------------------|-------------|-------------------------------------------------------------|
- | <ul><li>- [x]</li></ul> | Stack       | stack for call and retrieval                                |
- | <ul><li>- [x]</li></ul> | Regs        | a few arbitrary registers                                   |
- | <ul><li>- [x]</li></ul> | IP          | instruction pointer                                         |
- | <ul><li>- [x]</li></ul> | Jump        | jump to point                                               |
- | <ul><li>- [x]</li></ul> | Find        | find closest template                                       |
- | <ul><li>- [x]</li></ul> | Call        | function call                                               |
- | <ul><li>- [x]</li></ul> | Ret         | ret from function call                                      |
- | <ul><li>- [x]</li></ul> | If          | some conditioned jump (based on test register values only?) |
- | <ul><li>- [x]</li></ul> | Add         | +1 to reg                                                   |
- | <ul><li>- [x]</li></ul> | Sub         | -1 to reg                                                   |
- | <ul><li>- [x]</li></ul> | Reg Sub     | (reg = rega - regb) calc might be necessary                 |
- | <ul><li>- [ ]</li></ul> | Move        | move data between registers (MAYBE ONLY WITH STACK???)      |
- | <ul><li>- [x]</li></ul> | Move        | move data via indirect addressing (only for some regs?)     |
+ | <ul><li>- [x] </li></ul> | Stack       | stack for call and retrieval                                |
+ | <ul><li>- [x] </li></ul> | Regs        | a few arbitrary registers                                   |
+ | <ul><li>- [x] </li></ul> | IP          | instruction pointer                                         |
+ | <ul><li>- [x] </li></ul> | Jump        | jump to point                                               |
+ | <ul><li>- [x] </li></ul> | Find        | find closest template                                       |
+ | <ul><li>- [x] </li></ul> | Call        | function call                                               |
+ | <ul><li>- [x] </li></ul> | Ret         | ret from function call                                      |
+ | <ul><li>- [x] </li></ul> | If          | some conditioned jump (based on test register values only?) |
+ | <ul><li>- [x] </li></ul> | Add         | +1 to reg                                                   |
+ | <ul><li>- [x] </li></ul> | Sub         | -1 to reg                                                   |
+ | <ul><li>- [x] </li></ul> | Reg Sub     | (reg = rega - regb) calc might be necessary                 |
+ | <ul><li>- [ ] </li></ul> | Move        | move data between registers (MAYBE ONLY WITH STACK???)      |
+ | <ul><li>- [x] </li></ul> | Move        | move data via indirect addressing (only for some regs?)     |
  | Additional              | ----        | ----------------------------------------------------------- |
- | <ul><li>- [x]</li></ul> | Zero_Reg    | reset some reg to zero                                      |
+ | <ul><li>- [x] </li></ul> | Zero_Reg    | reset some reg to zero                                      |
 
 ***
