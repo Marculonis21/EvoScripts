@@ -12,7 +12,11 @@ LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord) 
 bool LPU::step() {
 	uint8_t fetchedInstr = memPtr->fetch(ip);
 
-	return decode(fetchedInstr, ip);
+	bool result = decode(fetchedInstr, ip);
+
+	ip += 1;
+
+	return result;
 }
 
 bool LPU::decode(uint8_t instr, uint64_t address) {
@@ -47,11 +51,11 @@ bool LPU::nop1(uint64_t address) { return true; }
  * jmp loads in the following template and jumps to a matching template
  */
 bool LPU::jmp(uint64_t address) {
-	matchResult result = memPtr->matchTemplate(address, memPtr->loadInTemplate(address));
-    
+	matchResult result = memPtr->matchTemplate(address);
     if (!result.success) return false;
 
-	ip = result.address;
+	// jump to address-1 so the next step runs on result.address
+	ip = result.address-1;
 	return true;
 }
 
@@ -70,26 +74,65 @@ bool LPU::cjmp(uint64_t address) {
  * find op loads in a template, finds a matching template and puts its address onto a stack to be used later
  */
 bool LPU::find(uint64_t address) {
-	matchResult result = memPtr->matchTemplate(address, memPtr->loadInTemplate(address));
-
+	matchResult result = memPtr->matchTemplate(address);
 	if (!result.success) return false;
 
 	stack.push(result.address);
+	return true;
+}
+
+/*
+ * OK SO, call and return functions at last...
+ *
+ * Call finds corresponding function which should be started, pushes the IP onto
+ * the stack, then all registers A,B,C, then jumps IP to the function
+ */
+bool LPU::call(uint64_t address) {
+	matchResult result = memPtr->matchTemplate(address);
+	if (!result.success) return false;
+
+	stack.push(ip);
+	push_a(address);
+	push_b(address);
+	push_c(address);
+
+	// jump to address-1 so the next step runs on result.address
+	ip = result.address-1;
 
 	return true;
 }
 
-
-bool LPU::call(uint64_t address) {
-
-}
+/*
+ * Return won't be taking care of no stackframes xD
+ * Let them figure it out!
+ *
+ * so return pops values C, B, A to registers, returning to the original state
+ * before return (can be wrong/different if function messes the stackframe),
+ * then pops and sets IP
+ *
+ * if at any incorrect moment the stack empties the function crashes and returns
+ * false
+ */
 bool LPU::ret(uint64_t address) {
+	if(!pop_c(address)) return false;
+	if(!pop_b(address)) return false;
+	if(!pop_a(address)) return false;
+	if (stack.empty()) return false;
+	ip = stack.top();
+	stack.pop();
 
+	return true;
 }
 
 /*
  * simple add_X, sub_X operations on registers
  */
+
+bool LPU::zero_a(uint64_t address) {
+	regA = 0;
+	return true;
+}
+
 bool LPU::add_a(uint64_t address) {
 	regA += 1;
 	return true;
@@ -145,18 +188,21 @@ bool LPU::pop_a(uint64_t address) {
 	if (stack.empty()) return false;
 
 	regA = stack.top();
+	stack.pop();
 	return true;
 }
 bool LPU::pop_b(uint64_t address) {
 	if (stack.empty()) return false;
 
 	regB = stack.top();
+	stack.pop();
 	return true;
 }
 bool LPU::pop_c(uint64_t address) {
 	if (stack.empty()) return false;
 
 	regC = stack.top();
+	stack.pop();
 	return true;
 }
 

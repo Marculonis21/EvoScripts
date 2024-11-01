@@ -31,34 +31,36 @@ class LPU {
 		case 0x07:
 			return "ret";
 		case 0x08:
-			return "add_a";
+			return "zero_a";
 		case 0x09:
-			return "add_b";
+			return "add_a";
 		case 0x0a:
-			return "sub_a";
+			return "add_b";
 		case 0x0b:
-			return "sub_b";
+			return "sub_a";
 		case 0x0c:
-			return "sub_ab";
+			return "sub_b";
 		case 0x0d:
-			return "mov";
+			return "sub_ab";
 		case 0x0e:
-			return "movi";
+			return "mov";
 		case 0x0f:
-			return "push_a";
+			return "movi";
 		case 0x10:
-			return "push_b";
+			return "push_a";
 		case 0x11:
-			return "push_c";
+			return "push_b";
 		case 0x12:
-			return "pop_a";
+			return "push_c";
 		case 0x13:
-			return "pop_b";
+			return "pop_a";
 		case 0x14:
-			return "pop_c";
+			return "pop_b";
 		case 0x15:
-			return "maloc";
+			return "pop_c";
 		case 0x16:
+			return "maloc";
+		case 0x17:
 			return "divide";
 		default:
 			return "UNKNOWN";
@@ -89,6 +91,7 @@ class LPU {
 	bool find   (uint64_t address);
 	bool call   (uint64_t address);
 	bool ret    (uint64_t address);
+	bool zero_a (uint64_t address);
 	bool add_a  (uint64_t address);
 	bool add_b  (uint64_t address);
 	bool sub_a  (uint64_t address);
