@@ -14,6 +14,7 @@ bool LPU::step() {
 
 	bool result = decode(fetchedInstr, ip);
 
+	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
 	ip += 1;
 
 	return result;
@@ -55,7 +56,8 @@ bool LPU::cjmp(uint64_t address) {
 }
 
 /*
- * find op loads in a template, finds a matching template and puts its address onto a stack to be used later
+ * find op loads in a template, finds a matching template and puts its address
+ * onto a stack to be used later
  */
 bool LPU::fndf(uint64_t address) {
 	matchResult result = memPtr->matchTemplateForward(address);
@@ -210,6 +212,8 @@ bool LPU::maloc(uint64_t address) {
 	memoryRecordOffspring = memPtr->allocate(address, regC);
 
 	if (memoryRecordOffspring.size == 0) return false;
+
+	regC = memoryRecordOffspring.start;
 
 	return true;
 }
