@@ -98,9 +98,10 @@ templateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
     }
 }
 
-
-matchResult BaseMemoryType::matchTemplate(uint64_t address, const templateInfo &pattern) const {
+matchResult BaseMemoryType::matchTemplate(uint64_t address) const {
     // TODO: should be refactored and TESTED!
+    templateInfo pattern = loadInTemplate(address);
+    if (pattern.patternSize == 0) return matchResult{false, address};
 
     // vector of hit pairs - start address, distance from start
     std::vector<std::pair<uint64_t, float>> hitVector;
