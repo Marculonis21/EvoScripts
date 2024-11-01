@@ -1,14 +1,16 @@
 #ifndef LPU_HPP
 #define LPU_HPP
 
+/* #include "manager.hpp" */
 #include "memorySpace.hpp"
-#include "manager.hpp"
 #include <cassert>
 #include <cstdint>
 #include <stack>
 #include <string>
 
 #include "lpu_addons.hpp"
+
+class Manager;
 
 class LPU {
   public:

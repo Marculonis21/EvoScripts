@@ -44,8 +44,8 @@ memorySpace BaseMemoryType::allocate(uint64_t address, uint64_t size) const {
 
         // THIS IS FUCKING UGLY!!! TODO: DO IT BETTER
         bool foundOtherBack = false;
-        for (int x = backCheck; x < backCheck + size; ++x) {
-            // anything else than 0
+        for (uint64_t x = backCheck; x < backCheck + size; ++x) {
+            // anything else than 0 TODO: Change it so we don't need to clear dead memory
             if (memory[x]) {
                 foundOtherBack = true;
                 break;
@@ -65,7 +65,7 @@ memorySpace BaseMemoryType::allocate(uint64_t address, uint64_t size) const {
         }
         
         bool foundOtherFront = false;
-        for (int x = forwardCheck; x < forwardCheck + size; ++x) {
+        for (uint64_t x = forwardCheck; x < forwardCheck + size; ++x) {
             // anything else than 0
             if (memory[x]) {
                 foundOtherFront = true;
@@ -109,7 +109,7 @@ std::vector<matchSearchHit> BaseMemoryType::findMatchingTemplateForward(uint64_t
     uint64_t test = 0;
     uint8_t instr;
 
-    for (int i = startPoint; i < startPoint+searchSize; ++i) {
+    for (uint64_t i = startPoint; i < startPoint+searchSize; ++i) {
         instr = fetch(i);
 
         // section of continuous nops
@@ -122,7 +122,8 @@ std::vector<matchSearchHit> BaseMemoryType::findMatchingTemplateForward(uint64_t
                 test = pattern.pattern ^ check; // xor check
                 if (((test + 1) & test) == 0) {
                     // matching pattern found! -- save first pos of template, distance from starting address
-                    hitVector.emplace_back(i - offset, address - (i - offset));
+                    // TODO: dunno why this has to pass the whole object back...
+                    hitVector.emplace_back(matchSearchHit{i - offset, (address - (i - offset))/float(searchSize)});
                 }
             }
 
@@ -144,7 +145,7 @@ std::vector<matchSearchHit> BaseMemoryType::findMatchingTemplateBackward(uint64_
     uint64_t test = 0;
     uint8_t instr = 0;
      
-    for (int i = startPoint; i < address; ++i) {
+    for (uint64_t i = startPoint; i < address; ++i) {
         instr = fetch(i);
 
         // section of continuous nops
@@ -157,7 +158,7 @@ std::vector<matchSearchHit> BaseMemoryType::findMatchingTemplateBackward(uint64_
                 test = pattern.pattern ^ check;
                 if (((test + 1) & test) == 0) {
                     // matching pattern found! -- save first pos of template, distance from starting address
-                    hitVector.emplace_back(i - offset, (address - (i - offset))/float(searchSize));
+                    hitVector.emplace_back(matchSearchHit{i - offset, (address - (i - offset))/float(searchSize)});
                 }
             }
 

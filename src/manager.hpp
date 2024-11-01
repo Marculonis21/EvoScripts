@@ -1,13 +1,11 @@
 #ifndef MANAGER_HPP
 #define MANAGER_HPP
 
+#include "lpu.hpp"
 #include "memorySpace.hpp"
 #include <memory>
 
-class LPU;
-
 class Manager {
-
   public:
 	Manager();
 

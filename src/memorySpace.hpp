@@ -16,7 +16,7 @@ struct matchResult {
 
 struct matchSearchHit {
 	uint64_t address = 0;
-	float distance = 0;
+	float distance = 0.0;
 };
 
 struct memorySpace {

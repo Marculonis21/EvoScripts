@@ -1,5 +1,6 @@
 #include "lpu.hpp"
 #include "memorySpace.hpp"
+#include "manager.hpp"
 
 LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord) {
 	this->memPtr = memPtr;

@@ -6,5 +6,5 @@ Manager::Manager() {
 }
 
 void Manager::addLpu(memorySpace newMemoryRecord) {
-	lpuPopulation.emplace_back(memory, newMemoryRecord);
+	lpuPopulation.emplace_back(memory.get(), this, std::move(newMemoryRecord));
 }

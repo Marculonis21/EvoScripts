@@ -1,15 +1,6 @@
-#include <memory>
-#include <string>
+#include "esParser.hpp"
 
-#include "lpu.hpp"
-#include "memorySpace.hpp"
-#include "visualizer.hpp"
-
-int main(int argc, char *argv[]) {
-	auto memPtr = std::make_shared<BaseMemoryType>(40);
-
-	/* LPU lpu{memPtr, }; */
-
-	/* CLIvisualizer visualizer(memPtr); */
-	/* visualizer.print(); */
+int main(int argc, char *argv[]) { 
+    ESParses parser;
+    parser.parseFile("ancestors/tester.es");
 }
