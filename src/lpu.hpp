@@ -47,7 +47,8 @@ class LPU {
 	bool nop0   (uint64_t address);
 	bool nop1   (uint64_t address);
 	bool jmp    (uint64_t address);
-	bool cjmp   (uint64_t address);
+	bool ifz    (uint64_t address);
+	bool ifnz   (uint64_t address);
 	bool fndf   (uint64_t address);
 	bool fndb   (uint64_t address);
 	bool call   (uint64_t address);
@@ -55,8 +56,10 @@ class LPU {
 	bool zero_a (uint64_t address);
 	bool add_a  (uint64_t address);
 	bool add_b  (uint64_t address);
+	bool add_c  (uint64_t address);
 	bool sub_a  (uint64_t address);
 	bool sub_b  (uint64_t address);
+	bool sub_c  (uint64_t address);
 	bool sub_ab (uint64_t address);
 	/* bool mov    (uint64_t address); */
 	bool movi   (uint64_t address);

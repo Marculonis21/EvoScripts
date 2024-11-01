@@ -45,11 +45,24 @@ bool LPU::jmp(uint64_t address) {
 }
 
 /*
- * conditional-jump on regA == 0 performs jmp op
+ * conditional on regC == 0 performs next instr
+ * otherwise IP is moved and next is skipped
  */
-bool LPU::cjmp(uint64_t address) {
-	if (regA == 0) {
-		return jmp(address);
+bool LPU::ifz(uint64_t address) {
+	if (regC != 0) {
+		ip += 1;
+	}
+
+	return true;
+}
+
+/*
+ * opposite to ifz, on regC != 0 performs next op,
+ * otherwise IP +1 and next is skipped
+ */
+bool LPU::ifnz(uint64_t address) {
+	if (regC == 0) {
+		ip += 1;
 	}
 
 	return true;
@@ -135,6 +148,10 @@ bool LPU::add_b(uint64_t address) {
 	regB += 1;
 	return true;
 }
+bool LPU::add_c(uint64_t address) {
+	regC += 1;
+	return true;
+}
 
 bool LPU::sub_a(uint64_t address) {
 	regA -= 1;
@@ -142,6 +159,10 @@ bool LPU::sub_a(uint64_t address) {
 }
 bool LPU::sub_b(uint64_t address) {
 	regB -= 1;
+	return true;
+}
+bool LPU::sub_c(uint64_t address) {
+	regC -= 1;
 	return true;
 }
 
@@ -152,9 +173,6 @@ bool LPU::sub_ab(uint64_t address) {
 	regC = regA - regB;
 	return true;
 }
-
-/* bool LPU::mov(uint64_t address) { */
-/* } */
 
 /*
  * move_instruction - does a copy of an instruction at address [regA] to address
