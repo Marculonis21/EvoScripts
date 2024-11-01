@@ -98,26 +98,51 @@ templateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
     }
 }
 
-matchResult BaseMemoryType::matchTemplate(uint64_t address) const {
-    // TODO: should be refactored and TESTED!
-    templateInfo pattern = loadInTemplate(address);
-    if (pattern.patternSize == 0) return matchResult{false, address};
+std::vector<matchSearchHit> BaseMemoryType::findMatchingTemplateForward(uint64_t address, templateInfo pattern) const {
+    std::vector<matchSearchHit> hitVector;
 
-    // vector of hit pairs - start address, distance from start
-    std::vector<std::pair<uint64_t, float>> hitVector;
-
-    const int searchSize = 30;
-
-    // search backward
-    uint64_t startPoint = address < searchSize ? 0 : address - searchSize;
-    std::cout << "backward sp:" <<startPoint << std::endl;
+    // forward
+    uint64_t startPoint = address + pattern.patternSize + 1;
 
     uint8_t offset = 0;
     uint64_t check = 0;
-
     uint64_t test = 0;
-
     uint8_t instr;
+
+    for (int i = startPoint; i < startPoint+searchSize; ++i) {
+        instr = fetch(i);
+
+        // section of continuous nops
+        if (instr == 0x01 || instr == 0x02) {
+            check |= (instr == 0x02 ? 1 : 0) << offset;
+            offset++;
+        }
+        else {
+            if (offset >= pattern.patternSize) {
+                test = pattern.pattern ^ check; // xor check
+                if (((test + 1) & test) == 0) {
+                    // matching pattern found! -- save first pos of template, distance from starting address
+                    hitVector.emplace_back(i - offset, address - (i - offset));
+                }
+            }
+
+            check = 0;
+            offset = 0;
+        }
+    }
+
+    return hitVector;
+}
+
+std::vector<matchSearchHit> BaseMemoryType::findMatchingTemplateBackward(uint64_t address, templateInfo pattern) const {
+    std::vector<matchSearchHit> hitVector;
+
+    uint64_t startPoint = address < searchSize ? 0 : address - searchSize;
+
+    uint8_t offset = 0;
+    uint64_t check = 0;
+    uint64_t test = 0;
+    uint8_t instr = 0;
      
     for (int i = startPoint; i < address; ++i) {
         instr = fetch(i);
@@ -129,13 +154,9 @@ matchResult BaseMemoryType::matchTemplate(uint64_t address) const {
         }
         else {
             if (offset >= pattern.patternSize){
-                std::cout << "finished pattern at addr" << i << std::endl;
-                std::cout << "found pattern: " << check << std::endl;
                 test = pattern.pattern ^ check;
-                std::cout << "test xor result: " << test << std::endl;
                 if (((test + 1) & test) == 0) {
                     // matching pattern found! -- save first pos of template, distance from starting address
-                    std::cout << "MATCH" << std::endl;
                     hitVector.emplace_back(i - offset, (address - (i - offset))/float(searchSize));
                 }
             }
@@ -145,43 +166,52 @@ matchResult BaseMemoryType::matchTemplate(uint64_t address) const {
         }
     }
 
-    // forward
-    startPoint = address + pattern.patternSize + 1;
-    std::cout << "forward sp:" <<startPoint << std::endl;
+    return hitVector;
+}
 
-    for (int i = startPoint; i < startPoint+searchSize; ++i) {
-        instr = fetch(i);
+matchResult BaseMemoryType::matchTemplateBackward(uint64_t address) const {
+    templateInfo pattern = loadInTemplate(address);
+    if (pattern.patternSize == 0) return matchResult{false, 0};
 
-        // section of continuous nops
-        if (instr == 0x01 || instr == 0x02) {
-            check |= (instr == 0x02 ? 1 : 0) << offset;
-            offset++;
-        }
-        else {
-            if (offset >= pattern.patternSize){
-                std::cout << "finished pattern at addr" << i << std::endl;
-                std::cout << "found pattern: " << check << std::endl;
-                test = pattern.pattern ^ check;
-                std::cout << "test xor result: " << test << std::endl;
-                if (((test + 1) & test) == 0) {
-                    // matching pattern found! -- save first pos of template, distance from starting address
-                    std::cout << "MATCH" << std::endl;
-                    hitVector.emplace_back(i - offset, address - (i - offset));
-                }
-            }
+    std::vector<matchSearchHit> hitVector = findMatchingTemplateBackward(address, pattern);
+    if (hitVector.size() == 0) return matchResult{false, 0};
 
-            check = 0;
-            offset = 0;
-        }
-    }
+    // TODO: CHECK THIS
+    // TODO: select with probability based on distance
+    std::random_shuffle(hitVector.begin(), hitVector.end());
+    return matchResult{true, hitVector[0].address};
+}
 
-    // choose some of the hit templates
-    
-    if (hitVector.size() > 0) return matchResult{false, 0};
+matchResult BaseMemoryType::matchTemplateForward(uint64_t address) const {
+    templateInfo pattern = loadInTemplate(address);
+    if (pattern.patternSize == 0) return matchResult{false, 0};
+
+    std::vector<matchSearchHit> hitVector = findMatchingTemplateForward(address, pattern);
+    if (hitVector.size() == 0) return matchResult{false, 0};
 
     // TODO: CHECK THIS
     std::random_shuffle(hitVector.begin(), hitVector.end());
-    return matchResult{true, hitVector[0].first};
+    return matchResult{true, hitVector[0].address};
+}
+
+/*
+ * Bidirectional template match
+ */
+matchResult BaseMemoryType::matchTemplate(uint64_t address) const {
+    templateInfo pattern = loadInTemplate(address);
+    if (pattern.patternSize == 0) return matchResult{false, 0};
+
+    auto hVb = findMatchingTemplateBackward(address, pattern);
+    auto hVf = findMatchingTemplateForward(address, pattern);
+    std::vector<matchSearchHit> hitVector(hVb.size() + hVf.size()); 
+
+    hitVector = hVb;
+    hitVector.insert(hitVector.end(), hVf.begin(), hVf.end());
+    if (hitVector.size() == 0) return matchResult{false, 0};
+
+    // TODO: CHECK THIS
+    std::random_shuffle(hitVector.begin(), hitVector.end());
+    return matchResult{true, hitVector[0].address};
 }
 
 bool BaseMemoryType::write(const memorySpace &lpuSpace, uint64_t address, uint8_t payload) {

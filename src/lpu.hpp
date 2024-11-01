@@ -3,9 +3,12 @@
 
 #include "memorySpace.hpp"
 #include "manager.hpp"
+#include <cassert>
 #include <cstdint>
 #include <stack>
 #include <string>
+
+#include "lpu_addons.hpp"
 
 class LPU {
   public:
@@ -13,58 +16,15 @@ class LPU {
 	bool step();
 
 	static std::string decode_tostring(uint8_t instr) {
-		switch (instr) {
-		case 0x00:
-			return "----";
-		case 0x01:
-			return "nop0";
-		case 0x02:
-			return "nop1";
-		case 0x03:
-			return "jmp";
-		case 0x04:
-			return "cjmp";
-		case 0x05:
-			return "find";
-		case 0x06:
-			return "call";
-		case 0x07:
-			return "ret";
-		case 0x08:
-			return "zero_a";
-		case 0x09:
-			return "add_a";
-		case 0x0a:
-			return "add_b";
-		case 0x0b:
-			return "sub_a";
-		case 0x0c:
-			return "sub_b";
-		case 0x0d:
-			return "sub_ab";
-		case 0x0e:
-			return "mov";
-		case 0x0f:
-			return "movi";
-		case 0x10:
-			return "push_a";
-		case 0x11:
-			return "push_b";
-		case 0x12:
-			return "push_c";
-		case 0x13:
-			return "pop_a";
-		case 0x14:
-			return "pop_b";
-		case 0x15:
-			return "pop_c";
-		case 0x16:
-			return "maloc";
-		case 0x17:
-			return "divide";
-		default:
-			return "UNKNOWN";
+		if(instr == 0) {
+			return "EMPTY";
 		}
+
+		if (instrToStringMap.contains(instr)) {
+			return instrToStringMap.at(instr);
+		}
+
+		return "UNKNOWN INSTRUCTION";
 	}
 
   private:
@@ -88,7 +48,8 @@ class LPU {
 	bool nop1   (uint64_t address);
 	bool jmp    (uint64_t address);
 	bool cjmp   (uint64_t address);
-	bool find   (uint64_t address);
+	bool fndf   (uint64_t address);
+	bool fndb   (uint64_t address);
 	bool call   (uint64_t address);
 	bool ret    (uint64_t address);
 	bool zero_a (uint64_t address);

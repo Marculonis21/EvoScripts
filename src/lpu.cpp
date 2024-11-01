@@ -22,22 +22,6 @@ bool LPU::step() {
 bool LPU::decode(uint8_t instr, uint64_t address) {
 	switch (instr) {
 		default: return false;
-	/* case 0x01: */
-	/* 	return ; */
-	/* case 0x02: */
-	/* 	return; */
-	/* case 0x03: */
-	/* 	return; */
-	/* case 0x04: */
-	/* 	return; */
-	/* case 0x05: */
-	/* 	return; */
-	/* case 0x06: */
-	/* 	return; */
-	/* case 0x07: */
-	/* 	return; */
-	/* case 0x08: */
-	/* 	return; */
 	}
 }
 
@@ -73,8 +57,16 @@ bool LPU::cjmp(uint64_t address) {
 /*
  * find op loads in a template, finds a matching template and puts its address onto a stack to be used later
  */
-bool LPU::find(uint64_t address) {
-	matchResult result = memPtr->matchTemplate(address);
+bool LPU::fndf(uint64_t address) {
+	matchResult result = memPtr->matchTemplateForward(address);
+	if (!result.success) return false;
+
+	stack.push(result.address);
+	return true;
+}
+
+bool LPU::fndb(uint64_t address) {
+	matchResult result = memPtr->matchTemplateBackward(address);
 	if (!result.success) return false;
 
 	stack.push(result.address);
