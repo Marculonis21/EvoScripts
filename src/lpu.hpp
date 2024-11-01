@@ -103,7 +103,6 @@ class LPU {
 	bool pop_c  (uint64_t address);
 	bool maloc  (uint64_t address);
 	bool divide (uint64_t address);
-
 };
 
 #endif

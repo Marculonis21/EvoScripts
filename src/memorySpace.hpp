@@ -30,7 +30,7 @@ class BaseMemoryType {
 	virtual memorySpace allocate(uint64_t address, uint64_t size) const;
 
 	virtual bool write(const memorySpace &lpuSpace, uint64_t addressTo, uint8_t payload);
-	virtual bool copy(const memorySpace &lpuSpace, uint64_t addressFrom, uint64_t addressTo);
+	virtual bool copy(const memorySpace &lpuSpace, const memorySpace &lpuSpaceOffspring, uint64_t addressFrom, uint64_t addressTo);
 
 	virtual templateInfo loadInTemplate(uint64_t address) const;
 	virtual matchResult matchTemplate(uint64_t address, const templateInfo &pattern) const;

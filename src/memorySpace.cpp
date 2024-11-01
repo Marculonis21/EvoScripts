@@ -190,8 +190,11 @@ bool BaseMemoryType::write(const memorySpace &lpuSpace, uint64_t address, uint8_
     return true;
 }
 
-bool BaseMemoryType::copy(const memorySpace &lpuSpace, uint64_t addressFrom, uint64_t addressTo) {
-    if (!lpuSpace.contains(addressTo)) return false;
+bool BaseMemoryType::copy(const memorySpace &lpuSpace, const memorySpace &lpuSpaceOffspring, uint64_t addressFrom, uint64_t addressTo) {
+    if (!lpuSpace.contains(addressTo) && 
+        !lpuSpaceOffspring.contains(addressTo)) {
+        return false;
+    }
 
     memory[addressTo] = memory[addressFrom];
     return true;

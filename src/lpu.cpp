@@ -123,7 +123,7 @@ bool LPU::sub_ab(uint64_t address) {
  * [regB]
  */
 bool LPU::movi(uint64_t address) {
-	return memPtr->copy(memoryRecord, regA, regB);
+	return memPtr->copy(memoryRecord, memoryRecordOffspring, regA, regB);
 }
 
 bool LPU::push_a(uint64_t address) {
@@ -173,4 +173,5 @@ bool LPU::maloc(uint64_t address) {
 	return true;
 }
 
-bool LPU::divide(uint64_t address) {}
+bool LPU::divide(uint64_t address) {
+}
