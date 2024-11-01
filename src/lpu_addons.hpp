@@ -1,0 +1,85 @@
+#ifndef LPU_ADDONS_HPP
+#define LPU_ADDONS_HPP 
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+
+enum class Instr : uint8_t {
+	nop0   = 0x01,
+	nop1   = 0x02,
+	jmp    = 0x03,
+	cjmp   = 0x04,
+	fndf   = 0x05,
+	fndb   = 0x06,
+	call   = 0x07,
+	ret    = 0x08,
+	zero_a = 0x09,
+	add_a  = 0x0a,
+	add_b  = 0x0b,
+	sub_a  = 0x0c,
+	sub_b  = 0x0d,
+	sub_ab = 0x0e,
+	movi   = 0x0f,
+	push_a = 0x10,
+	push_b = 0x11,
+	push_c = 0x12,
+	pop_a  = 0x13,
+	pop_b  = 0x14,
+	pop_c  = 0x15,
+	maloc  = 0x16,
+	divide = 0x17,
+};
+
+const std::unordered_map<uint8_t, std::string> instrToStringMap { 
+	{(uint8_t)Instr::nop0  , "nop0"   },
+	{(uint8_t)Instr::nop1  , "nop1"   },
+	{(uint8_t)Instr::jmp   , "jmp"    },
+	{(uint8_t)Instr::cjmp  , "cjmp"   },
+	{(uint8_t)Instr::fndf  , "fndf"   },
+	{(uint8_t)Instr::fndb  , "fndb"   },
+	{(uint8_t)Instr::call  , "call"   },
+	{(uint8_t)Instr::ret   , "ret"    },
+	{(uint8_t)Instr::zero_a, "zero_a" },
+	{(uint8_t)Instr::add_a , "add_a"  },
+	{(uint8_t)Instr::add_b , "add_b"  },
+	{(uint8_t)Instr::sub_a , "sub_a"  },
+	{(uint8_t)Instr::sub_b , "sub_b"  },
+	{(uint8_t)Instr::sub_ab, "sub_ab" },
+	{(uint8_t)Instr::movi  , "movi"   },
+	{(uint8_t)Instr::push_a, "push_a" },
+	{(uint8_t)Instr::push_b, "push_b" },
+	{(uint8_t)Instr::push_c, "push_c" },
+	{(uint8_t)Instr::pop_a , "pop_a"  },
+	{(uint8_t)Instr::pop_b , "pop_b"  },
+	{(uint8_t)Instr::pop_c , "pop_c"  },
+	{(uint8_t)Instr::maloc , "maloc"  },
+	{(uint8_t)Instr::divide, "divide" },
+};
+
+const std::unordered_map<std::string, uint8_t> stringToInstrMap { 
+	{"nop0"  , (uint8_t)Instr::nop0   },
+	{"nop1"  , (uint8_t)Instr::nop1   },
+	{"jmp"   , (uint8_t)Instr::jmp    },
+	{"cjmp"  , (uint8_t)Instr::cjmp   },
+	{"fndf"  , (uint8_t)Instr::fndf   },
+	{"fndb"  , (uint8_t)Instr::fndb   },
+	{"call"  , (uint8_t)Instr::call   },
+	{"ret"   , (uint8_t)Instr::ret    },
+	{"zero_a", (uint8_t)Instr::zero_a },
+	{"add_a" , (uint8_t)Instr::add_a  },
+	{"add_b" , (uint8_t)Instr::add_b  },
+	{"sub_a" , (uint8_t)Instr::sub_a  },
+	{"sub_b" , (uint8_t)Instr::sub_b  },
+	{"sub_ab", (uint8_t)Instr::sub_ab },
+	{"movi"  , (uint8_t)Instr::movi   },
+	{"push_a", (uint8_t)Instr::push_a },
+	{"push_b", (uint8_t)Instr::push_b },
+	{"push_c", (uint8_t)Instr::push_c },
+	{"pop_a" , (uint8_t)Instr::pop_a  },
+	{"pop_b" , (uint8_t)Instr::pop_b  },
+	{"pop_c" , (uint8_t)Instr::pop_c  },
+	{"maloc" , (uint8_t)Instr::maloc  },
+	{"divide", (uint8_t)Instr::divide },
+};
+
+#endif /* ifndef LPU_ADDONS_HPP */
