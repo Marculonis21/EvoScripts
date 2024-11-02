@@ -50,6 +50,8 @@ jmp
 nop1
 nop0
 nop1
+// dummy
+ifnz
 // end template
 nop0
 nop1

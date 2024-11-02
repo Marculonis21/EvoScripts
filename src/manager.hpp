@@ -11,9 +11,13 @@ class Manager {
 
 	void addLpu(memorySpace memoryRecord);
 
+	void stepDebug(int lpuId);
+
   private:
 	std::unique_ptr<BaseMemoryType> memory;
 	std::vector<LPU> lpuPopulation;
+
+	memorySpace insertAnimal(const std::string &filename);
 };
 
 #endif

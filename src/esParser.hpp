@@ -3,47 +3,78 @@
 
 #include "lpu_addons.hpp"
 #include <fstream>
-#include <iostream>
-#include <vector>
 #include <regex>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 class ESParses {
   public:
 	static std::vector<Instr> parseFile(const std::string &filename) {
+		auto stringCommands = parseCommands(filename);
+		std::vector<Instr> instrCommands;
 
-		std::vector<Instr> resultVector;
+		for (int line = 0; line < stringCommands.size(); ++line) {
+			auto comm = stringCommands[line];
+			if (!stringToInstrMap.contains(comm)) {
+				throw std::invalid_argument(
+					"In file: " + filename + " - invalid command " + comm +
+					" at line " + std::to_string(line + 1));
+			}
+
+			instrCommands.push_back(stringToInstrMap.at(comm));
+		}
+
+		return instrCommands;
+	}
+
+  private:
+	static std::vector<std::string> parseCommands(const std::string &filename) {
+		std::vector<std::string> resultVector;
+
 		std::ifstream file(filename);
 
-        std::regex del("//");
+		std::regex del("//");
 
 		if (file.is_open()) {
 			std::string line;
 			while (std::getline(file, line)) {
-				if (line.starts_with("//")) {
-					printf("Comment: %s\n", line.c_str());
-				}
-				else {
-					std::sregex_token_iterator partIterator(line.begin(), line.end(), del, -1);
-					std::sregex_token_iterator end;
+				line = trim(line);
+				if (!line.starts_with("//")) {
+					std::sregex_token_iterator partIterator(
+						line.begin(), line.end(), del, -1);
+					std::string firstToken = *partIterator;
+					firstToken = trim(firstToken);
 
-					printf("Something: ");
-					while (partIterator != end) {
-						std::string part = *partIterator;
-						printf("part \"%s\", ", part.c_str());
-						++partIterator;
+					if (firstToken != "") {
+						resultVector.emplace_back(firstToken);
 					}
-					printf("\n");
 				}
-
-                printf("For input: %s\n\n", line.c_str());
 			}
 
 			file.close();
 		} else {
-			std::cout << "Problem opening a file - " << filename << std::endl;
+			throw std::invalid_argument("Problem opening a file " + filename);
 		}
 
 		return resultVector;
+	}
+
+	std::string static trim(std::string &str) {
+		int i = 0;
+
+		// left trim
+		while (isspace(str[i]) != 0)
+			i++;
+		str = str.substr(i, str.length() - i);
+
+		// right trim
+		i = str.length() - 1;
+		while (isspace(str[i]) != 0)
+			i--;
+		str = str.substr(0, i + 1);
+
+		return str;
 	}
 };
 
