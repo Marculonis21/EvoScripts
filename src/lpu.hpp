@@ -16,6 +16,7 @@ class LPU {
   public:
 	LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord);
 	bool step();
+	operator std::string() const;
 
 	static std::string decode_tostring(uint8_t instr) {
 		if(instr == 0) {
@@ -27,6 +28,10 @@ class LPU {
 		}
 
 		return "UNKNOWN INSTRUCTION";
+	}
+
+	uint64_t currentIP() const {
+		return ip;
 	}
 
   private:

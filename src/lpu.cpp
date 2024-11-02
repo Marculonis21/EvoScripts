@@ -1,6 +1,8 @@
 #include "lpu.hpp"
 #include "memorySpace.hpp"
 #include "manager.hpp"
+#include <cstdio>
+#include <string>
 
 LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord) {
 	this->memPtr = memPtr;
@@ -8,6 +10,15 @@ LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord) 
 	this->memoryRecord = memoryRecord;
 	ip = memoryRecord.start;
 	regA, regB, regC = uint64_t();
+}
+
+/* operator std::string() const; */
+LPU::operator std::string() const {
+	std::string output;
+	output += "LPU with memoryRecord (start: " + std::to_string(memoryRecord.start) + ", length: " +std::to_string(memoryRecord.size)+")\n";
+	output += " IP: " + std::to_string(ip) + "\n";
+	output += " Regs: " + std::to_string(regA) + ", "+ std::to_string(regB) + ", " + std::to_string(regC);
+	return output;
 }
 
 bool LPU::step() {
@@ -23,8 +34,35 @@ bool LPU::step() {
 
 bool LPU::decode(uint8_t instr, uint64_t address) {
 	switch (instr) {
+		case (uint8_t)Instr::nop0:   return nop0(address);
+		case (uint8_t)Instr::nop1:   return nop1(address);
+		case (uint8_t)Instr::jmp:    return jmp(address);
+		case (uint8_t)Instr::ifz:    return ifz(address);
+		case (uint8_t)Instr::ifnz:   return ifnz(address);
+		case (uint8_t)Instr::fndf:   return fndf(address);
+		case (uint8_t)Instr::fndb:   return fndb(address);
+		case (uint8_t)Instr::call:   return call(address);
+		case (uint8_t)Instr::ret:    return ret(address);
+		case (uint8_t)Instr::zero_a: return zero_a(address);
+		case (uint8_t)Instr::add_a:  return add_a(address);
+		case (uint8_t)Instr::add_b:  return add_b(address);
+		case (uint8_t)Instr::add_c:  return add_c(address);
+		case (uint8_t)Instr::sub_a:  return sub_a(address);
+		case (uint8_t)Instr::sub_b:  return sub_b(address);
+		case (uint8_t)Instr::sub_c:  return sub_c(address);
+		case (uint8_t)Instr::sub_ab: return sub_ab(address);
+		case (uint8_t)Instr::movi:   return movi(address);
+		case (uint8_t)Instr::push_a: return push_a(address);
+		case (uint8_t)Instr::push_b: return push_b(address);
+		case (uint8_t)Instr::push_c: return push_c(address);
+		case (uint8_t)Instr::pop_a:  return pop_a(address);
+		case (uint8_t)Instr::pop_b:  return pop_b(address);
+		case (uint8_t)Instr::pop_c:  return pop_c(address);
+		case (uint8_t)Instr::maloc:  return maloc(address);
+		case (uint8_t)Instr::divide: return divide(address);
 		default: return false;
 	}
+
 }
 
 /*
