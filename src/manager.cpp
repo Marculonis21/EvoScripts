@@ -6,7 +6,7 @@
 #include <string>
 
 Manager::Manager() {
-	memory= std::make_unique<BaseMemoryType>(100);
+	memory= std::make_unique<BaseMemoryType>(200);
 	lpuPopulation.reserve(10);
 
     memorySpace ancestorRecord = insertAnimal("ancestors/tester.es");
@@ -44,19 +44,13 @@ void Manager::stepDebug(int lpuId) {
             std::cout << std::endl;
         }
         std::cout << std::endl;
-
         std::cout << std::string(lpuPopulation[lpuId]) << std::endl;
 
-        std::cout << "\n n + ENTER TO CONTINUE | q + ENTER TO EXIT" << std::endl;
-        std::cin >> input;
-
-        if (input == "n") {
-            std::cout << "Output: " << std::to_string(lpuPopulation[lpuId].step()) << std::endl;;
-            continue;
-        }
-        else {
+        auto x = std::cin.get();
+        if (x == 'q') {
             break;
         }
+        lpuPopulation[lpuId].step();
     }
 }
 

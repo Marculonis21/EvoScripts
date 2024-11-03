@@ -6,13 +6,13 @@
 
 class CLIvisualizer {
   public:
-	CLIvisualizer(std::shared_ptr<BaseMemoryType> memPtr);
+	CLIvisualizer(BaseMemoryType *memPtr);
 
-    void print();
-    void print(uint64_t start, uint64_t end);
+	void print();
+	void print(uint64_t start, uint64_t end);
 
   private:
-	std::shared_ptr<BaseMemoryType> memPtr;
+	BaseMemoryType *memPtr;
 };
 
 #endif

@@ -24,6 +24,7 @@ struct memorySpace {
 	uint64_t size = 0;
 
 	bool contains(uint64_t address) const;
+	bool collides(memorySpace other) const;
 };
 
 class BaseMemoryType {
@@ -31,7 +32,7 @@ class BaseMemoryType {
 	BaseMemoryType(uint64_t size);
 
 	virtual uint8_t fetch(uint64_t address) const;
-	virtual memorySpace allocate(uint64_t address, uint64_t size) const;
+	virtual memorySpace allocate(uint64_t address, uint64_t size);
 
     virtual uint64_t getMemorySize() const;
 
@@ -44,12 +45,15 @@ class BaseMemoryType {
 
   protected:
 	std::vector<uint8_t> memory;
+	std::vector<memorySpace> allocatedSpaces;
 
-	const int searchSize = 30;
+	const int searchSize = 50;
 
 	virtual templateInfo loadInTemplate(uint64_t address) const;
 	virtual std::vector<matchSearchHit> findMatchingTemplateForward(uint64_t address, templateInfo pattern) const;
 	virtual std::vector<matchSearchHit> findMatchingTemplateBackward(uint64_t address, templateInfo pattern) const;
+
+	virtual bool checkMemorySpaceCollisions(const memorySpace &testSpace) const;
 };
 
 

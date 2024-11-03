@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-CLIvisualizer::CLIvisualizer(std::shared_ptr<BaseMemoryType> memPtr) {
+CLIvisualizer::CLIvisualizer(BaseMemoryType *memPtr) {
 	this->memPtr = memPtr;
 }
 

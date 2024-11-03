@@ -1,6 +1,7 @@
-#include "esParser.hpp"
+#include "manager.hpp"
+#include <cstdio>
 
 int main(int argc, char *argv[]) { 
-    ESParses parser;
-    parser.parseFile("ancestors/tester.es");
+    Manager manager;
+    manager.stepDebug(0);
 }
