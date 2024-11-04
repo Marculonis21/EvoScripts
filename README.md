@@ -100,3 +100,11 @@ if I'm proficient enough... BUT it woudl be a great exercise plus I see a bunch
 of places where I would love the syntax of Rust to help, Result values, return
 enum types and stuff like that! Might want to try to finish this in C++ and do
 a test run rewriting it into Rust. Might be fun!
+
+#### 2024-11-04 14:12 -- The value of an instruction
+
+I'm thinking about implementing (after first tests) the value for instructions.
+That would make some instructions more expensive than others (e.g. the
+allocation should cost much more than adding 1 to a register). This could drive
+more optimization out of species!
+
