@@ -131,16 +131,13 @@ bool LPU::fndb(uint64_t address) {
  * OK SO, call and return functions at last...
  *
  * Call finds corresponding function which should be started, pushes the IP onto
- * the stack, then all registers A,B,C, then jumps IP to the function
+ * the stack, then jumps IP to the function
  */
 bool LPU::call(uint64_t address) {
 	matchResult result = memPtr->matchTemplate(address);
 	if (!result.success) return false;
 
 	stack.push(ip);
-	push_a(address);
-	push_b(address);
-	push_c(address);
 
 	// jump to address-1 so the next step runs on result.address
 	ip = result.address-1;
@@ -149,20 +146,15 @@ bool LPU::call(uint64_t address) {
 }
 
 /*
- * Return won't be taking care of no stackframes xD
- * Let them figure it out!
+ * Return won't be taking care of no function stackframes!
+ * Let them figure out what to do or how to use it!
  *
- * so return pops values C, B, A to registers, returning to the original state
- * before return (can be wrong/different if function messes the stackframe),
- * then pops and sets IP
+ * return pops address from the stack and returns to that address
+ * (can be wrong if function messes the stackframe/return outside of function)
  *
- * if at any incorrect moment the stack empties the function crashes and returns
- * false
+ * function fails on call with an empty stack
  */
 bool LPU::ret(uint64_t address) {
-	if(!pop_c(address)) return false;
-	if(!pop_b(address)) return false;
-	if(!pop_a(address)) return false;
 	if (stack.empty()) return false;
 	ip = stack.top();
 	stack.pop();
@@ -171,14 +163,16 @@ bool LPU::ret(uint64_t address) {
 }
 
 /*
- * simple add_X, sub_X operations on registers
+ * reset register A
  */
-
 bool LPU::zero_a(uint64_t address) {
 	regA = 0;
 	return true;
 }
 
+/*
+ * simple add_X, sub_X operations on registers
+ */
 bool LPU::add_a(uint64_t address) {
 	regA += 1;
 	return true;
