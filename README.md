@@ -108,3 +108,16 @@ That would make some instructions more expensive than others (e.g. the
 allocation should cost much more than adding 1 to a register). This could drive
 more optimization out of species!
 
+#### 2024-11-06 18:15 -- Process loop conundrum
+
+What and how to loop processes without much of my intervention to their
+*natural* way of being. With some brainstorming (thank you A.), the idea NOW is
+to loop processes to their first address in two cases.
+
+One would be if a process is at the end of its instructions i.e. just processed
+the instuction at memory space corresponding to its assigned memory space, and
+is now moving to another. 
+
+The other one would be if at any point in instruction processing fetch returns
+*BLANK* instruction i.e. free address inside the memory, which we are not able
+to process.
