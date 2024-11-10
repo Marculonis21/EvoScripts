@@ -1,4 +1,5 @@
 #include "lpu.hpp"
+#include "lpu_addons.hpp"
 #include "memorySpace.hpp"
 #include "manager.hpp"
 #include <cstdio>
@@ -21,13 +22,26 @@ LPU::operator std::string() const {
 	return output;
 }
 
+void LPU::moveIP(uint8_t lastInstr) {
+	// necessary!
+	ip += 1;
+
+	// if at the end of own memory space - roll back to the start 
+	// if fetched a None instruction - roll back
+	if (ip == memoryRecord.start + memoryRecord.size || 
+		lastInstr == (uint8_t)Instr::None) {
+
+		ip = memoryRecord.start;
+	}
+}
+
 bool LPU::step() {
 	uint8_t fetchedInstr = memPtr->fetch(ip);
 
 	bool result = decode(fetchedInstr, ip);
 
 	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
-	ip += 1;
+	moveIP(fetchedInstr);
 
 	return result;
 }

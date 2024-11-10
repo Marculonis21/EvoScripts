@@ -2,6 +2,7 @@
 #include "esParser.hpp"
 #include "memorySpace.hpp"
 #include "visualizer.hpp"
+#include <cstdio>
 #include <iostream>
 #include <string>
 
@@ -36,15 +37,15 @@ void Manager::stepDebug(int lpuId) {
     while (true) {
         vis.print();
 
+        // print moving window around current ip in memory
         for (uint64_t i = lpuPopulation[lpuId].currentIP()-2; i < lpuPopulation[lpuId].currentIP()+3; ++i) {
-            std::cout << LPU::decode_tostring(memory->fetch(i)); 
+            printf("%2ld| %s", i, LPU::decode_tostring(memory->fetch(i)).c_str());
             if(i == lpuPopulation[lpuId].currentIP()) {
-                std::cout << "   <--- CURRENT LINE"; 
+                printf("   <--- CURRENT LINE");
             }
-            std::cout << std::endl;
+            printf("\n");
         }
-        std::cout << std::endl;
-        std::cout << std::string(lpuPopulation[lpuId]) << std::endl;
+        printf("\n%s\n", std::string(lpuPopulation[lpuId]).c_str());
 
         auto x = std::cin.get();
         if (x == 'q') {

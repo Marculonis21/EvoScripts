@@ -50,6 +50,8 @@ class LPU {
 
 	bool decode(uint8_t instr, uint64_t address);
 
+	void moveIP(uint8_t lastInstr);
+
 	// instruction set
 	bool nop0   (uint64_t address);
 	bool nop1   (uint64_t address);

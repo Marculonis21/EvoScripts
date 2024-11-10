@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 enum class Instr : uint8_t {
+	None   = 0x00,
 	nop0   = 0x01,
 	nop1   = 0x02,
 	jmp    = 0x03,
