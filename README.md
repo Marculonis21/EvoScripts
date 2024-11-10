@@ -121,3 +121,14 @@ is now moving to another.
 The other one would be if at any point in instruction processing fetch returns
 *BLANK* instruction i.e. free address inside the memory, which we are not able
 to process.
+
+#### 2024-11-10 18:17 -- Memory allocation algorithms
+
+It seems really helpful to add some memory allocation algorithms. I'm probably
+not gonna play around with it that much, implementing something like a Best
+Fit! 
+
+One problem that comes to my mind is that I would like to have some sort of
+spacial relationship between mother/daughter. Memory should try to provide
+memory space for mother cell in her neighborhood (offspring should not be breed
+on the other side of the memory space if it is possible).
