@@ -2,6 +2,7 @@
 #include "allocStrategy.hpp"
 #include "memoryHelperStructs.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -43,7 +44,10 @@ std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 	std::optional<MemorySpace> space =
 		allocStrategy->allocate(allocatedSpaces, address, size);
 
+	assert(space.has_value() && "THERE IS NO MORE SPACE FOR ALLOCATION PROBABLY...");
+
 	if (space) {
+		std::cout << "INSERTED SOMEWHERE" << std::endl;
 		allocatedSpaces.insert(space.value());
 	}
 

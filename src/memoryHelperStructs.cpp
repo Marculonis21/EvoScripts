@@ -32,18 +32,8 @@ void AllocSpacesContainer::insert(MemorySpace inserted) {
     std::cout << "ASC INSERT" << std::endl;
 
     auto fitIndex = findInsertIndex(inserted);
+    std::cout << "found index: " << fitIndex << std::endl;
     allocatedSpaces.insert(allocatedSpaces.cbegin() + fitIndex, inserted);
-}
-
-bool AllocSpacesContainer::checkMemorySpaceCollision(const MemorySpace &testSpace) const {
-	// TODO: COULD be done much better as allocated space could be sorted in the
-	// vector based on starting index and then we would need to check only a few
-	// surrounding cases
-    
-    // index of an element preceeding the testSpace
-    auto fitIndex = fitBinarySearch(testSpace, 0, allocatedSpaces.size());
-
-    return allocatedSpaces[fitIndex].collides(testSpace);
 }
 
 int AllocSpacesContainer::findInsertIndex(const MemorySpace &testSpace) const {

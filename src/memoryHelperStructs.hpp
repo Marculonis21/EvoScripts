@@ -36,7 +36,6 @@ class AllocSpacesContainer {
 	AllocSpacesContainer(uint64_t memorySize);
 
 	void insert(MemorySpace inserted);
-	bool checkMemorySpaceCollision(const MemorySpace &testSpace) const;
 
 	const_iterator begin() const { return allocatedSpaces.begin(); };
 	const_iterator end() const { return allocatedSpaces.end(); };

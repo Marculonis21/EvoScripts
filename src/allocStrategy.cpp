@@ -7,8 +7,8 @@
 
 // unnamed namespace for helper func
 namespace {
-bool fitsBetween(uint64_t size, const MemorySpace &m1, const MemorySpace &m2) {
-	return (m2.start - (m1.start + m1.size)) >= size;
+bool fitsBetween(uint64_t size, const MemorySpace &lower, const MemorySpace &upper) {
+	return (upper.start - (lower.start + lower.size)) >= size;
 }
 } // namespace
 
@@ -37,8 +37,11 @@ std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &a
 			MemorySpace back = allocatedSpaces.at(backIndex);
 			MemorySpace next = allocatedSpaces.at(backIndex + 1);
 
-			if (fitsBetween(size, next, back)) {
+			if (fitsBetween(size, back, next)) {
 				std::cout << "FITS FIRST" << std::endl;
+				std::cout << "BackIndex " << backIndex << std::endl;
+				std::cout << " - back " << back.start << ", " << back.size << std::endl;
+				std::cout << " - next " << next.start << ", " << next.size << std::endl;
 				// size of the new allocated space away from the 'next' block start
 				return MemorySpace{next.start - size, size};
 			}
@@ -53,6 +56,9 @@ std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &a
 
 			if (fitsBetween(size, prev, forward)) {
 				std::cout << "FITS END" << std::endl;
+				std::cout << "Frontindex " << frontIndex << std::endl;
+				std::cout << " - prev"    << prev.start    << ", " << prev.size << std::endl;
+				std::cout << " - forward" << forward.start << ", " << forward.size << std::endl;
 				// starts right after the end of prev space
 				return MemorySpace{prev.start+prev.size, size};
 			}

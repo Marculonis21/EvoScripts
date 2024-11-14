@@ -302,7 +302,7 @@ bool LPU::divide(uint64_t address) {
 	if (memoryRecordOffspring.size == 0) return false;
 
 	managerPtr->addLpu(memoryRecordOffspring);
-	memoryRecordOffspring = MemorySpace(); // reset memoryRecordOffspring
+	memoryRecordOffspring = MemorySpace{0,0}; // reset memoryRecordOffspring
 
 	return true;
 }
