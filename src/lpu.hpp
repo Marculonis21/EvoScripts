@@ -1,8 +1,7 @@
 #ifndef LPU_HPP
 #define LPU_HPP
 
-/* #include "manager.hpp" */
-#include "memorySpace.hpp"
+#include "memory.hpp"
 #include <cassert>
 #include <cstdint>
 #include <stack>
@@ -14,7 +13,7 @@ class Manager;
 
 class LPU {
   public:
-	LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord);
+	LPU(BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord);
 	bool step();
 	operator std::string() const;
 
@@ -45,8 +44,8 @@ class LPU {
 	BaseMemoryType *memPtr;
 	Manager *managerPtr;
 
-	memorySpace memoryRecord;
-	memorySpace memoryRecordOffspring;
+	MemorySpace memoryRecord;
+	MemorySpace memoryRecordOffspring;
 
 	bool decode(uint8_t instr, uint64_t address);
 

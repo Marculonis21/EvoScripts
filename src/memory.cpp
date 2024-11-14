@@ -1,16 +1,18 @@
 #include "memory.hpp"
-#include "memoryHelperStructs.hpp"
 #include "allocStrategy.hpp"
+#include "memoryHelperStructs.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <optional>
 #include <random>
 #include <string>
 #include <vector>
 
-BaseMemoryType::BaseMemoryType(uint64_t size, std::unique_ptr<AllocStrategy> allocStrategy) {
+BaseMemoryType::BaseMemoryType(uint64_t size,
+							   std::unique_ptr<AllocStrategy> allocStrategy) {
 	memory = std::vector<uint8_t>(size, 0);
 	allocStrategy = std::move(allocStrategy);
 }
@@ -25,20 +27,18 @@ uint64_t BaseMemoryType::getMemorySize() const { return memory.size(); }
  * Find suitable place to allocate memorySpace of size `size` around `address`
  * and save and return allocated memorySpace
  */
-MemorySpace BaseMemoryType::allocate(uint64_t address, uint64_t size) {
-	std::default_random_engine generator;
-	std::cout << "ALLOCATE PROCEDURE" << std::endl;
-
+std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
+													uint64_t size) {
 	// base case with fresh memory
 	if (allocatedSpaces.size() == 0) {
 		return MemorySpace{address, size};
 	}
 
-	MemorySpace space = allocStrategy->allocate(allocatedSpaces, address, size);
+	std::optional<MemorySpace> space =
+		allocStrategy->allocate(allocatedSpaces, address, size);
 
-	if (space.size != 0) {
-		// alloc strategy found a place for insertion
-		allocatedSpaces.insert(space);
+	if (space) {
+		allocatedSpaces.insert(space.value());
 	}
 
 	return space;
@@ -66,8 +66,7 @@ TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 	}
 }
 
-std::vector<MatchSearchHit>
-BaseMemoryType::findMatchingTemplateForward(uint64_t address,
+std::vector<MatchSearchHit> BaseMemoryType::findMatchingTemplateForward(uint64_t address,
 											TemplateInfo pattern) const {
 	std::vector<MatchSearchHit> hitVector;
 
@@ -220,7 +219,6 @@ MatchResult BaseMemoryType::matchTemplate(uint64_t address) const {
 	if (hitVector.size() == 0)
 		return MatchResult{false, 0};
 
-	// TODO: CHECK THIS
 	std::random_shuffle(hitVector.begin(), hitVector.end());
 	return MatchResult{true, hitVector[0].address};
 }

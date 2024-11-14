@@ -1,16 +1,20 @@
 #include "lpu.hpp"
 #include "lpu_addons.hpp"
-#include "memorySpace.hpp"
+#include "memory.hpp"
 #include "manager.hpp"
 #include <cstdio>
+#include <optional>
 #include <string>
 
-LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, memorySpace memoryRecord) {
+LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord) {
 	this->memPtr = memPtr;
 	this->managerPtr = managerPtr;
 	this->memoryRecord = memoryRecord;
 	ip = memoryRecord.start;
-	regA, regB, regC = uint64_t();
+
+	regA = uint64_t();
+	regB = uint64_t();
+	regC = uint64_t();
 }
 
 /* operator std::string() const; */
@@ -89,7 +93,7 @@ bool LPU::nop1(uint64_t address) { return true; }
  * jmp loads in the following template and jumps to a matching template
  */
 bool LPU::jmp(uint64_t address) {
-	matchResult result = memPtr->matchTemplate(address);
+	MatchResult result = memPtr->matchTemplate(address);
     if (!result.success) return false;
 
 	// jump to address-1 so the next step runs on result.address
@@ -126,7 +130,7 @@ bool LPU::ifnz(uint64_t address) {
  * onto a stack to be used later
  */
 bool LPU::fndf(uint64_t address) {
-	matchResult result = memPtr->matchTemplateForward(address);
+	MatchResult result = memPtr->matchTemplateForward(address);
 	if (!result.success) return false;
 
 	stack.push(result.address);
@@ -134,7 +138,7 @@ bool LPU::fndf(uint64_t address) {
 }
 
 bool LPU::fndb(uint64_t address) {
-	matchResult result = memPtr->matchTemplateBackward(address);
+	MatchResult result = memPtr->matchTemplateBackward(address);
 	if (!result.success) return false;
 
 	stack.push(result.address);
@@ -148,7 +152,7 @@ bool LPU::fndb(uint64_t address) {
  * the stack, then jumps IP to the function
  */
 bool LPU::call(uint64_t address) {
-	matchResult result = memPtr->matchTemplate(address);
+	MatchResult result = memPtr->matchTemplate(address);
 	if (!result.success) return false;
 
 	stack.push(ip);
@@ -274,10 +278,12 @@ bool LPU::maloc(uint64_t address) {
 	// cannot allocate another space when one offspring already exists
 	if (memoryRecordOffspring.size != 0) return false;
 
-	memoryRecordOffspring = memPtr->allocate(address, regC);
+	std::optional<MemorySpace> allocatedSpace = memPtr->allocate(address, regC);
+	if(!allocatedSpace) {
+		return false;
+	}
 
-	if (memoryRecordOffspring.size == 0) return false;
-
+	memoryRecordOffspring = allocatedSpace.value();
 	regC = memoryRecordOffspring.start;
 
 	return true;
@@ -288,7 +294,7 @@ bool LPU::divide(uint64_t address) {
 	if (memoryRecordOffspring.size == 0) return false;
 
 	managerPtr->addLpu(memoryRecordOffspring);
-	memoryRecordOffspring = memorySpace(); // reset memoryRecordOffspring
+	memoryRecordOffspring = MemorySpace(); // reset memoryRecordOffspring
 
 	return true;
 }

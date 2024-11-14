@@ -5,6 +5,7 @@
 #include "memoryHelperStructs.hpp"
 #include <memory>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 class BaseMemoryType {
@@ -12,7 +13,7 @@ class BaseMemoryType {
 	BaseMemoryType(uint64_t size, std::unique_ptr<AllocStrategy> allocStrategy);
 
 	virtual uint8_t fetch(uint64_t address) const;
-	virtual MemorySpace allocate(uint64_t address, uint64_t size);
+	virtual std::optional<MemorySpace> allocate(uint64_t address, uint64_t size);
 
     virtual uint64_t getMemorySize() const;
 

@@ -2,6 +2,7 @@
 #include "allocStrategy.hpp"
 #include "memoryHelperStructs.hpp"
 #include <cstdint>
+#include <optional>
 
 // unnamed namespace for helper func
 namespace {
@@ -10,8 +11,8 @@ bool fitsBetween(uint64_t size, const MemorySpace &m1, const MemorySpace m2) {
 };
 } // namespace
 
-MemorySpace AllocFirstFit::allocate(const AllocSpacesContainer &allocatedSpaces,
-								    uint64_t caller, uint64_t size) const {
+std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &allocatedSpaces,
+												uint64_t caller, uint64_t size) const {
 
 	int middleIndex = allocatedSpaces.findInsertIndex(MemorySpace{caller, 0});
 
@@ -54,5 +55,5 @@ MemorySpace AllocFirstFit::allocate(const AllocSpacesContainer &allocatedSpaces,
 		}
 	}
 
-	return MemorySpace{0,0};
+	return std::nullopt;
 }

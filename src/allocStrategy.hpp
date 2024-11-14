@@ -3,6 +3,7 @@
 
 #include "memoryHelperStructs.hpp"
 #include <cstdint>
+#include <optional>
 
 class AllocStrategy {
   public:
@@ -13,14 +14,14 @@ class AllocStrategy {
 	 * allocated memory spaces. The returned MemorySpace is not yet inserted into
 	 * the allocatedSpaces container.
 	 */
-	virtual MemorySpace allocate(const AllocSpacesContainer &allocatedSpaces,
-					   		     uint64_t caller, uint64_t size) const = 0;
+	virtual std::optional<MemorySpace> allocate(const AllocSpacesContainer &allocatedSpaces,
+												uint64_t caller, uint64_t size) const = 0;
 };
 
 class AllocFirstFit : public AllocStrategy {
   public:
-	virtual MemorySpace allocate(const AllocSpacesContainer &allocatedSpaces,
-							     uint64_t caller, uint64_t size) const override;
+	virtual std::optional<MemorySpace> allocate(const AllocSpacesContainer &allocatedSpaces,
+												uint64_t caller, uint64_t size) const override;
 };
 
 #endif
