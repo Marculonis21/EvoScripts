@@ -2,6 +2,7 @@
 #include "lpu_addons.hpp"
 #include "memory.hpp"
 #include "manager.hpp"
+#include <iostream>
 #include <cstdio>
 #include <optional>
 #include <string>
@@ -11,6 +12,7 @@ LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord) 
 	this->managerPtr = managerPtr;
 	this->memoryRecord = memoryRecord;
 	ip = memoryRecord.start;
+	memoryRecordOffspring = MemorySpace{0,0};
 
 	regA = uint64_t();
 	regB = uint64_t();
@@ -21,8 +23,11 @@ LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord) 
 LPU::operator std::string() const {
 	std::string output;
 	output += "LPU with memoryRecord (start: " + std::to_string(memoryRecord.start) + ", length: " +std::to_string(memoryRecord.size)+")\n";
+	output += " - offspring memoryRecord " + (memoryRecordOffspring.size != 0 ? "(start: " + std::to_string(memoryRecordOffspring.start) + ", length: " +std::to_string(memoryRecord.size)+")" : "NONE") + "\n";
 	output += " IP: " + std::to_string(ip) + "\n";
-	output += " Regs: " + std::to_string(regA) + ", "+ std::to_string(regB) + ", " + std::to_string(regC);
+	output += " Regs: " + std::to_string(regA) + ", "+ std::to_string(regB) + ", " + std::to_string(regC) + "\n";
+	output += " Stack top: " + (!stack.empty() ? std::to_string(stack.top()) : "EMPTY") + "\n";
+
 	return output;
 }
 
@@ -155,7 +160,9 @@ bool LPU::call(uint64_t address) {
 	MatchResult result = memPtr->matchTemplate(address);
 	if (!result.success) return false;
 
-	stack.push(ip);
+	// push ip+1 so ret (top-1) can possibly get back to original address and
+	// next ip is going to be the one following the call instruction
+	stack.push(ip+1);
 
 	// jump to address-1 so the next step runs on result.address
 	ip = result.address-1;
@@ -174,7 +181,8 @@ bool LPU::call(uint64_t address) {
  */
 bool LPU::ret(uint64_t address) {
 	if (stack.empty()) return false;
-	ip = stack.top();
+	// return to address -1 so it can be processed next
+	ip = stack.top() - 1;
 	stack.pop();
 
 	return true;
