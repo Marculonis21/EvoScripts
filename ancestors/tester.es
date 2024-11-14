@@ -20,8 +20,12 @@ nop0
 nop0
 // get end to a + size of the template, start to b, do sub_ab: a - b = c
 pop_a
+// offset the end template + dummy statement
 add_a
 add_a
+add_a
+add_a
+// end of offsetting
 pop_b
 sub_ab
 // c contains the size of THIS (save it for later)
@@ -57,3 +61,5 @@ ret // return back to start of copy loop
 nop0
 nop1
 nop1
+//dummy end
+zero_a
