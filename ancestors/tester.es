@@ -46,12 +46,13 @@ add_b
 sub_c
 // loop condition - if size != 0 jump to start of copy loop
 ifnz 
-jmp
+// jmp -- THIS LITTLE SHIT WAS MAKING COPIES OF ITSELF AND JUMPING TO THE COPIES...
+fndb
 nop1
 nop0
 nop1
-// dummy
-ifnz
+ifnz 
+ret // return back to start of copy loop
 // end template
 nop0
 nop1
