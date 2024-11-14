@@ -7,14 +7,14 @@
 #include <cstdlib>
 #include <iostream>
 #include <optional>
-#include <random>
 #include <string>
 #include <vector>
 
 BaseMemoryType::BaseMemoryType(uint64_t size,
-							   std::unique_ptr<AllocStrategy> allocStrategy) {
-	memory = std::vector<uint8_t>(size, 0);
-	allocStrategy = std::move(allocStrategy);
+							   std::unique_ptr<AllocStrategy> allocStrategy) : allocStrategy(std::move(allocStrategy)), 
+																			   allocatedSpaces(size) {
+
+	this->memory = std::vector<uint8_t>(size, 0);
 }
 
 uint8_t BaseMemoryType::fetch(uint64_t address) const {
@@ -29,9 +29,15 @@ uint64_t BaseMemoryType::getMemorySize() const { return memory.size(); }
  */
 std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 													uint64_t size) {
-	// base case with fresh memory
-	if (allocatedSpaces.size() == 0) {
-		return MemorySpace{address, size};
+
+	std::cout << "ALLOCATION FUNC" << std::endl;
+	// base case with fresh memory - fresh but two boundary spaces, are alright
+	// TODO:: what about checking if user does not specify some bullshit first
+	// memory space... ought to happen at least once...
+	if (allocatedSpaces.size() == 2) {
+		auto space = MemorySpace{address, size};
+		allocatedSpaces.insert(space);
+		return space;
 	}
 
 	std::optional<MemorySpace> space =
@@ -66,7 +72,8 @@ TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 	}
 }
 
-std::vector<MatchSearchHit> BaseMemoryType::findMatchingTemplateForward(uint64_t address,
+std::vector<MatchSearchHit>
+BaseMemoryType::findMatchingTemplateForward(uint64_t address,
 											TemplateInfo pattern) const {
 	std::vector<MatchSearchHit> hitVector;
 

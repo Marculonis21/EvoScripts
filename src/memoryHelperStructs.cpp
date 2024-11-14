@@ -19,17 +19,19 @@ bool MemorySpace::collides(MemorySpace other) const {
             (other.start <= this->start && other.start+other.size >= this->start+this->size));
 }
 
+AllocSpacesContainer::AllocSpacesContainer(uint64_t memorySize) {
+    // boundary memorySpaces
+    allocatedSpaces.push_back(MemorySpace{0,0});
+    allocatedSpaces.push_back(MemorySpace{memorySize,0});
+}
+
 void AllocSpacesContainer::insert(MemorySpace inserted) {
 	// keeping the invariant of sorted memory spaces so they can be easily
 	// traversed and checked during allocation
     
-    // push first
-    if (this->allocatedSpaces.empty()) {
-        allocatedSpaces.push_back(inserted);
-        return;
-    }
+    std::cout << "ASC INSERT" << std::endl;
 
-    auto fitIndex = fitBinarySearch(inserted, 0, allocatedSpaces.size());
+    auto fitIndex = findInsertIndex(inserted);
     allocatedSpaces.insert(allocatedSpaces.cbegin() + fitIndex, inserted);
 }
 
@@ -45,7 +47,7 @@ bool AllocSpacesContainer::checkMemorySpaceCollision(const MemorySpace &testSpac
 }
 
 int AllocSpacesContainer::findInsertIndex(const MemorySpace &testSpace) const {
-    return fitBinarySearch(testSpace, 0, allocatedSpaces.size());
+    return fitBinarySearch(testSpace, 0, allocatedSpaces.size()-1);
 }
 
 int AllocSpacesContainer::fitBinarySearch(const MemorySpace &testSpace, int low, int high) const {
@@ -55,16 +57,25 @@ int AllocSpacesContainer::fitBinarySearch(const MemorySpace &testSpace, int low,
     std::cout << "Bin search " << low << ":" << high << std::endl;
 
     if (high-low == 0) { 
-        std::cout << "    Bin search return " << low << std::endl;
-        return low; 
+        if (testSpace.start < allocatedSpaces[low].start) {
+            std::cout << "    Bin search return " << low << std::endl;
+            return low;
+        }
+        else {
+            std::cout << "    Bin search return " << low + 1<< std::endl;
+            return low+1;
+        }
     }
 
 	int middle = low + (high-low)/2;
+    std::cout << "middle " << middle << std::endl;
 
     if (testSpace.start < allocatedSpaces[middle].start) {
-        return fitBinarySearch(testSpace, low, middle-1);
+        std::cout << "L " << low << "," << middle << std::endl;
+        return fitBinarySearch(testSpace, low, middle);
     }
     else {
+        std::cout << "H " << middle+1 << "," << high << std::endl;
         return fitBinarySearch(testSpace, middle+1, high);
     }
 }

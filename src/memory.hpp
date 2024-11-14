@@ -35,8 +35,6 @@ class BaseMemoryType {
 	virtual TemplateInfo loadInTemplate(uint64_t address) const;
 	virtual std::vector<MatchSearchHit> findMatchingTemplateForward(uint64_t address, TemplateInfo pattern) const;
 	virtual std::vector<MatchSearchHit> findMatchingTemplateBackward(uint64_t address, TemplateInfo pattern) const;
-
-	virtual bool checkMemorySpaceCollisions(const MemorySpace &testSpace) const;
 };
 
 

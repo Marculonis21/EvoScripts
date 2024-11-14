@@ -33,7 +33,7 @@ class AllocSpacesContainer {
   public:
 	using const_iterator = msVec::const_iterator;
 
-	AllocSpacesContainer();
+	AllocSpacesContainer(uint64_t memorySize);
 
 	void insert(MemorySpace inserted);
 	bool checkMemorySpaceCollision(const MemorySpace &testSpace) const;
