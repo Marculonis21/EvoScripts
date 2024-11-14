@@ -37,27 +37,37 @@ void Manager::stepDebug(int lpuId) {
 
     bool lastStepRes = true;
 
+    LPU lpu = lpuPopulation[lpuId];
+
     while (true) {
         this->visualizer->print();
         printf("\n");
         // print moving window around current ip in memory
-        for (uint64_t i = lpuPopulation[lpuId].currentIP()-2; i < lpuPopulation[lpuId].currentIP()+3; ++i) {
+        for (uint64_t i = lpu.currentIP()-2; i < lpu.currentIP()+3; ++i) {
             printf("%2ld| %s", i, LPU::decode_tostring(memory->fetch(i)).c_str());
-            if(i == lpuPopulation[lpuId].currentIP()) {
+            if(i == lpu.currentIP()) {
                 printf("   <--- CURRENT LINE");
             }
             printf("\n");
         }
-        printf("\n%s\n", std::string(lpuPopulation[lpuId]).c_str());
+        printf("\n%s\n", std::string(lpu).c_str());
 
         printf("LastStep Result: %d\n", lastStepRes);
 
-        auto x = std::cin.get();
-        if (x == 'q') {
-            break;
+        printf("Pop size: %ld\n", lpuPopulation.size());
+
+        if (lpu.currentIP() == 100 ||
+            lpu.currentIP() == 123 ||
+            lpu.currentIP() == 124 ||
+            lpu.currentIP() == 125) {
+            
+            auto x = std::cin.get();
+            if (x == 'q') {
+                break;
+            }
         }
 
-        lastStepRes = lpuPopulation[lpuId].step();
+        lastStepRes = lpu.step();
     }
 }
 

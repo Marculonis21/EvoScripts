@@ -57,6 +57,7 @@ nop0
 nop1
 ifnz 
 ret // return back to start of copy loop
+divide // divide at the end
 // end template
 nop0
 nop1
