@@ -2,14 +2,9 @@
 #include "lpu.hpp"
 #include <cstdio>
 #include <iostream>
-#include <memory>
 #include <string>
 
-CLIvisualizer::CLIvisualizer(BaseMemoryType *memPtr) {
-	this->memPtr = memPtr;
-}
-
-void CLIvisualizer::print() {
+void CLIvisualizer::print() const {
 	std::cout << "---- Memory print out ----" << std::endl;
 	std::cout << "- full memory size " << std::to_string(memPtr->getMemorySize()) << std::endl;
 	std::cout << "\nLine num | instr hex | instr" << std::endl;

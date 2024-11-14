@@ -1,30 +1,33 @@
 #include "manager.hpp"
+#include "allocStrategy.hpp"
 #include "esParser.hpp"
-#include "memorySpace.hpp"
+#include "memory.hpp"
 #include "visualizer.hpp"
 #include <cstdio>
 #include <iostream>
+#include <memory>
+#include <stdexcept>
 #include <string>
 
 Manager::Manager() {
-	memory= std::make_unique<BaseMemoryType>(200);
+	memory= std::make_unique<BaseMemoryType>(200, std::unique_ptr<AllocStrategy>(new AllocFirstFit()));
 	lpuPopulation.reserve(10);
 
-    memorySpace ancestorRecord = insertAnimal("ancestors/tester.es");
+    MemorySpace ancestorRecord = insertAnimal("ancestors/tester.es");
     if(ancestorRecord.size == 0)
     {
-        std::cout << "insert failed" << std::endl;
+        throw std::invalid_argument("first animal insert failed");
     }
     else {
         addLpu(ancestorRecord);
     }
 
     std::cout << std::string(lpuPopulation[0]) << std::endl;
-    CLIvisualizer vis(memory.get());
-    vis.print();
+    this->visualizer = std::unique_ptr<VisualizerStrategy>(new CLIvisualizer(memory.get()));
+    /* visualizer->print(); */
 }
 
-void Manager::addLpu(memorySpace newMemoryRecord) {
+void Manager::addLpu(MemorySpace newMemoryRecord) {
 	lpuPopulation.emplace_back(memory.get(), this, std::move(newMemoryRecord));
 }
 
@@ -32,11 +35,11 @@ void Manager::stepDebug(int lpuId) {
     std::string input;
     std::cout << "Step debug for lpu " << lpuId << std::endl;
 
-    CLIvisualizer vis(memory.get());
+    bool lastStepRes = true;
 
     while (true) {
-        vis.print();
-
+        this->visualizer->print();
+        printf("\n");
         // print moving window around current ip in memory
         for (uint64_t i = lpuPopulation[lpuId].currentIP()-2; i < lpuPopulation[lpuId].currentIP()+3; ++i) {
             printf("%2ld| %s", i, LPU::decode_tostring(memory->fetch(i)).c_str());
@@ -47,28 +50,30 @@ void Manager::stepDebug(int lpuId) {
         }
         printf("\n%s\n", std::string(lpuPopulation[lpuId]).c_str());
 
+        printf("LastStep Result: %d\n", lastStepRes);
+
         auto x = std::cin.get();
         if (x == 'q') {
             break;
         }
-        lpuPopulation[lpuId].step();
+
+        lastStepRes = lpuPopulation[lpuId].step();
     }
 }
 
-memorySpace Manager::insertAnimal(const std::string &filename) {
+MemorySpace Manager::insertAnimal(const std::string &filename) {
     std::vector<Instr> ancestorCommands;
     try {
         ancestorCommands = ESParses::parseFile(filename);
     } catch (std::invalid_argument &e) {
         std::cout << "Problem with parsing ancestor file:" << std::endl;
         std::cout << "Error: " << e.what() << std::endl;
-        return memorySpace();
+        return MemorySpace();
     }
 
-    memorySpace mRecord = memory->allocate(memory->getMemorySize()/2,ancestorCommands.size());
-    std::cout << std::to_string(mRecord.start) << ": size " << std::to_string(mRecord.size) << std::endl;
+    MemorySpace mRecord = memory->allocate(memory->getMemorySize()/2,ancestorCommands.size()).value();
     if (mRecord.size == 0) {
-        return memorySpace();
+        return MemorySpace();
     }
 
     for (int i = 0; i < ancestorCommands.size(); ++i) {

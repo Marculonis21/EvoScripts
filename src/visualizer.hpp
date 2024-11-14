@@ -1,18 +1,21 @@
 #ifndef VISUALIZER_HPP
 #define VISUALIZER_HPP
 
-#include "memorySpace.hpp"
-#include <memory>
+#include "memory.hpp"
 
-class CLIvisualizer {
+class VisualizerStrategy {
   public:
-	CLIvisualizer(BaseMemoryType *memPtr);
+    VisualizerStrategy(BaseMemoryType *memPtr) { this->memPtr = memPtr; };
+	virtual void print() const = 0;
 
-	void print();
-	void print(uint64_t start, uint64_t end);
+  protected:
+    BaseMemoryType *memPtr;
+};
 
-  private:
-	BaseMemoryType *memPtr;
+class CLIvisualizer : public VisualizerStrategy {
+  public:
+    CLIvisualizer(BaseMemoryType *memPtr) : VisualizerStrategy(memPtr) {}
+	void print() const override;
 };
 
 #endif
