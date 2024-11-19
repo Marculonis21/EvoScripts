@@ -132,3 +132,12 @@ One problem that comes to my mind is that I would like to have some sort of
 spacial relationship between mother/daughter. Memory should try to provide
 memory space for mother cell in her neighborhood (offspring should not be breed
 on the other side of the memory space if it is possible).
+
+#### 2024-11-19 13:20 -- Allocation algorithms 
+
+Last time I've added and tested the mother-centered firstfit algorithm. Now I
+have to try to do proper LPU switching and running multiple of them at the same
+time in larger chunk of memory. 
+
+I'm missing some sort of mutation and some sort of penalizer for faulty
+processes.
