@@ -12,7 +12,7 @@ class BaseMemoryType {
   public:
 	BaseMemoryType(uint64_t size, std::unique_ptr<AllocStrategy> allocStrategy);
 
-	virtual uint8_t fetch(uint64_t address) const;
+	virtual std::optional<uint8_t> fetch(uint64_t address) const;
 	virtual std::optional<MemorySpace> allocate(uint64_t address, uint64_t size);
 
     virtual uint64_t getMemorySize() const;

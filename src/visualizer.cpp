@@ -10,7 +10,7 @@ void CLIvisualizer::print() const {
 	std::cout << "\nLine num | instr hex | instr" << std::endl;
 
 	for (uint64_t i = 0; i < memPtr->getMemorySize(); ++i) {
-		uint8_t instr = memPtr->fetch(i);
+		uint8_t instr = memPtr->fetch(i).value();
 		auto str = LPU::decode_tostring(instr); 
 		std::printf("%2d | " ,int(i));
 		std::printf("0x%02x | " ,static_cast<int>(instr));

@@ -18,8 +18,12 @@ BaseMemoryType::BaseMemoryType(uint64_t size,
 	this->memory = std::vector<uint8_t>(size, 0);
 }
 
-uint8_t BaseMemoryType::fetch(uint64_t address) const {
-	return memory[address];
+std::optional<uint8_t> BaseMemoryType::fetch(uint64_t address) const {
+	if (address < memory.size()) {
+		return memory[address];
+	}
+
+	return std::nullopt;
 }
 
 uint64_t BaseMemoryType::getMemorySize() const { return memory.size(); }
@@ -62,7 +66,7 @@ TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 		std::cout << "loadInTemplate address: " << address + 1 + offset
 				  << std::endl;
 		// start loading after the original instr address
-		switch (fetch(address + 1 + offset)) {
+		switch (fetch(address + 1 + offset).value()) {
 		case 0x01: // nop0
 			break;
 		case 0x02:
@@ -90,7 +94,7 @@ BaseMemoryType::findMatchingTemplateForward(uint64_t address,
 	uint8_t instr;
 
 	for (uint64_t i = startPoint; i < startPoint + searchSize; ++i) {
-		instr = fetch(i);
+		instr = fetch(i).value();
 
 		// section of continuous nops
 		if (instr == 0x01 || instr == 0x02) {
@@ -141,7 +145,7 @@ BaseMemoryType::findMatchingTemplateBackward(uint64_t address,
 	uint8_t instr = 0;
 
 	for (uint64_t i = startPoint; i < address; ++i) {
-		instr = fetch(i);
+		instr = fetch(i).value();
 
 		// section of continuous nops
 		if (instr == 0x01 || instr == 0x02) {
@@ -185,8 +189,11 @@ MatchResult BaseMemoryType::matchTemplateBackward(uint64_t address) const {
 
 	std::vector<MatchSearchHit> hitVector =
 		findMatchingTemplateBackward(address, pattern);
-	if (hitVector.size() == 0)
+
+	std::cout << "MATCH BACKWARD BACK" << std::endl;
+	if (hitVector.size() == 0) {
 		return MatchResult{false, 0};
+	}
 
 	// TODO: CHECK THIS
 	// TODO: select with probability based on distance

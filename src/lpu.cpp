@@ -45,12 +45,20 @@ void LPU::moveIP(uint8_t lastInstr) {
 }
 
 bool LPU::step() {
-	uint8_t fetchedInstr = memPtr->fetch(ip);
+	std::cout << "fetch:" << ip << std::endl;
+	std::optional<uint8_t> fetchedInstr = memPtr->fetch(ip);
+	if (!fetchedInstr.has_value()) {
+		// THIS IS WRONG AND SHOULD BE PUNISHED
+		
+		ip = memoryRecord.start;
+		return false;
+	}
 
-	bool result = decode(fetchedInstr, ip);
+	std::cout << instrToStringMap.at(fetchedInstr.value()) << std::endl;
+	bool result = decode(fetchedInstr.value(), ip);
 
 	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
-	moveIP(fetchedInstr);
+	moveIP(fetchedInstr.value());
 
 	return result;
 }
@@ -302,6 +310,7 @@ bool LPU::divide(uint64_t address) {
 	if (memoryRecordOffspring.size == 0) return false;
 
 	managerPtr->addLpu(memoryRecordOffspring);
+
 	memoryRecordOffspring = MemorySpace{0,0}; // reset memoryRecordOffspring
 
 	return true;
