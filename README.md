@@ -141,3 +141,12 @@ time in larger chunk of memory.
 
 I'm missing some sort of mutation and some sort of penalizer for faulty
 processes.
+
+#### 2025-01-22 21:30 -- WE ARE BACK
+
+Exams done and now I'm all for following this project! I've tried doing a few
+changes, still creatures are spawning over each other at the moment... I'm
+thinking about doing this thing in Rust. I like the necessary testing and
+return values, which would ease the process of connecting more segments. Or I'm
+actually pretty close with this version, so it may just need to iron out a few
+problem here and there... We'll see. The rust version is speaking to me!
