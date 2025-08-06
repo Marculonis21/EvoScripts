@@ -71,7 +71,7 @@ Taking notes from above, actually doing custom ISA (instruction set
 architecture), sounds like a bunch of pain, BUT it might actually be fun and
 enable me doing some nice things different than the original work.
 
-What kind of things would I like to see in my ISA? (Get Miguel on board!!!)
+What kind of things would I like to see in my ISA?
 
  | Imp.                    | Inst./Feat. | Descr.                                                      |
  |-------------------------|-------------|-------------------------------------------------------------|
@@ -142,7 +142,7 @@ time in larger chunk of memory.
 I'm missing some sort of mutation and some sort of penalizer for faulty
 processes.
 
-#### 2025-01-22 21:30 -- WE ARE BACK
+#### 2025-01-22 21:30 -- Rust maybe
 
 Exams done and now I'm all for following this project! I've tried doing a few
 changes, still creatures are spawning over each other at the moment... I'm
@@ -150,3 +150,16 @@ thinking about doing this thing in Rust. I like the necessary testing and
 return values, which would ease the process of connecting more segments. Or I'm
 actually pretty close with this version, so it may just need to iron out a few
 problem here and there... We'll see. The rust version is speaking to me!
+
+#### 2025-08-06 11:51 -- Well that was a break
+
+I haven't done much with the project through the semester but I still have it
+sitting in my mind. I would like to continue the work now. Ther have been a few
+tests of mine trying some project in Rust and I didn't really like it atm
+(maybe a skill issue). But I will be continuing the work in C++ and see where
+that lands me. I would like to finish this hopefully shortly, because of other
+sim project in mind. 
+
+From what I remember, I am missing some type of memory cleaner (the killer
+robot) and maybe some changes to how programs are structured in the map. Tests
+and that's probably it... We'll see how far off I am xD
