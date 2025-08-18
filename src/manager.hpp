@@ -1,28 +1,33 @@
-#ifndef MANAGER_HPP
-#define MANAGER_HPP
+#pragma once 
 
-#include "lpu.hpp"
+#include "lpu_pool.hpp"
 #include "memory.hpp"
+#include "memoryHelperStructs.hpp"
 #include "visualizer.hpp"
 #include <memory>
-#include <queue>
+#include <vector>
 
 class Manager {
   public:
 	Manager();
 
-	void addLpu(MemorySpace memoryRecord);
+	void addLPU(LPUHandle predecessor, MemorySpace &&memoryRecord);
+	void removeLPU(LPUHandle handle);
 
-	void stepDebug(int lpuId);
+	template<typename T>
+	std::vector<std::pair<LPUHandle, T>> selectLPUs(std::function<T(LPU*)> selector) {
+		return lpuPopulation.select(selector);
+	}
 	void sim();
 
   private:
 	std::unique_ptr<BaseMemoryType> memory;
-	std::vector<LPU> lpuPopulation;
-	std::queue<LPU*> processQueue;
+	LPUPool lpuPopulation;
+
 	std::unique_ptr<VisualizerStrategy> visualizer;
 
-	MemorySpace insertAnimal(const std::string &filename);
-};
+	MemorySpace insert(const std::string &filename);
 
-#endif
+	uint64_t stepCounter;
+	uint64_t lpuIDCounter;
+};

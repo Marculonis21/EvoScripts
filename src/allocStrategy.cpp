@@ -7,17 +7,24 @@
 
 // unnamed namespace for helper func
 namespace {
-bool fitsBetween(uint64_t size, const MemorySpace &lower, const MemorySpace &upper) {
-	return (upper.start - (lower.start + lower.size)) >= size;
-}
+	bool fitsBetween(uint64_t size, const MemorySpace &lower, const MemorySpace &upper) {
+		return (upper.start - (lower.start + lower.size)) >= size;
+	}
 } // namespace
 
 std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &allocatedSpaces,
-												uint64_t caller, uint64_t size) const {
+												   uint64_t caller, uint64_t size) const {
 
 	std::cout << "ALLOC FIRST FIT PROCEDURE" << std::endl;
 	// middle = insert index - 1 ... find index of current caller cell (find
 	// returns next index, so -1)
+	
+	std::cout << "Current AS:" << std::endl;
+	for (int i = 0; i < allocatedSpaces.size(); ++i) {
+		auto as = allocatedSpaces.at(i);
+		std::cout << "- Pos: " << as.start << " Size: " << as.size << std::endl;
+	}
+	
 	int middleIndex = allocatedSpaces.findInsertIndex(MemorySpace{caller, 0})-1;
 	std::cout << "middle index: " << middleIndex << std::endl;
 

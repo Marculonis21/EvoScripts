@@ -1,5 +1,5 @@
-#ifndef MEM_HELPER_STRUCTGS_HPP
-#define MEM_HELPER_STRUCTGS_HPP
+#pragma once
+
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -20,11 +20,23 @@ struct MatchSearchHit {
 };
 
 struct MemorySpace {
+
+	MemorySpace() = default;
+	MemorySpace(uint64_t, uint64_t);
+
 	uint64_t start = 0;
 	uint64_t size = 0;
 
 	bool contains(uint64_t address) const;
 	bool collides(MemorySpace other) const;
+	bool isEmpty() const;
+
+	// necessary for erase-remove
+	bool operator==(const MemorySpace& other) const {
+		return start == other.start && size == other.size;
+	}
+
+	static MemorySpace EMPTY() { return MemorySpace(0,0); }
 };
 
 class AllocSpacesContainer {
@@ -36,6 +48,7 @@ class AllocSpacesContainer {
 	AllocSpacesContainer(uint64_t memorySize);
 
 	void insert(MemorySpace inserted);
+	void erase(MemorySpace erased);
 
 	const_iterator begin() const { return allocatedSpaces.begin(); };
 	const_iterator end() const { return allocatedSpaces.end(); };
@@ -50,5 +63,3 @@ class AllocSpacesContainer {
 	int fitBinarySearch(const MemorySpace &testSpace, int low, int high) const;
 	msVec allocatedSpaces;
 };
-
-#endif

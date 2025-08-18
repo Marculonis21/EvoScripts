@@ -1,5 +1,4 @@
-#ifndef ESPARSER_HPP
-#define ESPARSER_HPP
+#pragma once
 
 #include "lpu_addons.hpp"
 #include <fstream>
@@ -77,5 +76,3 @@ class ESParses {
 		return str;
 	}
 };
-
-#endif

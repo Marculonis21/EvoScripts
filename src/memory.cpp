@@ -1,5 +1,7 @@
 #include "memory.hpp"
 #include "allocStrategy.hpp"
+#include "lpu_addons.hpp"
+#include "memoryCleaner.hpp"
 #include "memoryHelperStructs.hpp"
 #include <algorithm>
 #include <cassert>
@@ -9,11 +11,16 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
+#include <iostream>
 
 BaseMemoryType::BaseMemoryType(uint64_t size,
-							   std::unique_ptr<AllocStrategy> allocStrategy) : allocStrategy(std::move(allocStrategy)), 
-																			   allocatedSpaces(size) {
+							   std::unique_ptr<AllocStrategy> allocStrategy,
+							   std::unique_ptr<MemoryCleanerStrategy> cleanerStrategy)
+	: allocatedSpaces(size), 
+	  allocStrategy(std::move(allocStrategy)), 
+	  cleanerStrategy(std::move(cleanerStrategy)){
 
 	this->memory = std::vector<uint8_t>(size, 0);
 }
@@ -33,7 +40,8 @@ uint64_t BaseMemoryType::getMemorySize() const { return memory.size(); }
  * and save and return allocated memorySpace
  */
 std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
-													uint64_t size) {
+													uint64_t size,
+													LPUHandle caller) {
 
 	std::cout << "ALLOCATION FUNC" << std::endl;
 	// base case with fresh memory - fresh but two boundary spaces, are alright
@@ -45,15 +53,25 @@ std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 		return space;
 	}
 
-	std::optional<MemorySpace> space =
-		allocStrategy->allocate(allocatedSpaces, address, size);
+	std::optional<MemorySpace> space;
+	// CAREFUL NOW!
+	while (1) {
+		/* space.reset(); */
+		space = allocStrategy->allocate(allocatedSpaces, address, size);
 
-	assert(space.has_value() && "THERE IS NO MORE SPACE FOR ALLOCATION PROBABLY...");
+		if (space.has_value()) { break; }
+
+		std::cout << "No more space for allocation - calling cleaner" << std::endl;
+		cleanerStrategy->clean(caller);
+	}
+	/* assert(space.has_value() && */
+	/* 	   "THERE IS NO MORE SPACE FOR ALLOCATION PROBABLY..."); */
 
 	if (space) {
-		std::cout << "INSERTED SOMEWHERE" << std::endl;
+		std::cout << "INSERTED SOMEWHERE!" << std::endl;
 		allocatedSpaces.insert(space.value());
 	}
+	auto x = std::cin.get();
 
 	return space;
 }
@@ -94,6 +112,8 @@ BaseMemoryType::findMatchingTemplateForward(uint64_t address,
 	uint8_t instr;
 
 	for (uint64_t i = startPoint; i < startPoint + searchSize; ++i) {
+		if (!fetch(i).has_value()) { break; }
+
 		instr = fetch(i).value();
 
 		// section of continuous nops
@@ -118,7 +138,7 @@ BaseMemoryType::findMatchingTemplateForward(uint64_t address,
 													   float(searchSize)});
 					std::cout << "forward match - hit add "
 							  << std::to_string(i - offset) << ", "
-							  << std::to_string((address - (i - offset)) /
+							  << std::to_string(((i - offset) - address) /
 												float(searchSize))
 							  << std::endl;
 				}

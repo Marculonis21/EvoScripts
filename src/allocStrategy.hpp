@@ -1,5 +1,4 @@
-#ifndef ALLOC_STRATEGY_HPP
-#define ALLOC_STRATEGY_HPP
+#pragma once
 
 #include "memoryHelperStructs.hpp"
 #include <cstdint>
@@ -23,5 +22,3 @@ class AllocFirstFit : public AllocStrategy {
 	virtual std::optional<MemorySpace> allocate(const AllocSpacesContainer &allocatedSpaces,
 												uint64_t caller, uint64_t size) const override;
 };
-
-#endif

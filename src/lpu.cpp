@@ -6,27 +6,31 @@
 #include <cstdio>
 #include <optional>
 #include <string>
+#include <stack>
 
-LPU::LPU(BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord) {
-	this->memPtr = memPtr;
-	this->managerPtr = managerPtr;
-	this->memoryRecord = memoryRecord;
+LPU::LPU(LPUHandle handle, BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord, uint64_t dateofbirth) : 
+	handle(handle), memPtr(memPtr), managerPtr(managerPtr), memoryRecord(memoryRecord), dateofbirth(dateofbirth) {
+
 	ip = memoryRecord.start;
-	memoryRecordOffspring = MemorySpace{0,0};
+	memoryRecordOffspring = MemorySpace::EMPTY();
+
+	this->errors = 0;
 
 	regA = uint64_t();
 	regB = uint64_t();
 	regC = uint64_t();
+	stack = std::stack<uint64_t>();
 }
 
 /* operator std::string() const; */
 LPU::operator std::string() const {
 	std::string output;
-	output += "LPU with memoryRecord (start: " + std::to_string(memoryRecord.start) + ", length: " +std::to_string(memoryRecord.size)+")\n";
-	output += " - offspring memoryRecord " + (memoryRecordOffspring.size != 0 ? "(start: " + std::to_string(memoryRecordOffspring.start) + ", length: " +std::to_string(memoryRecord.size)+")" : "NONE") + "\n";
+	output += "LPU("+std::to_string(dateofbirth)+") with memoryRecord (start: " + std::to_string(memoryRecord.start) + ", length: " +std::to_string(memoryRecord.size)+")\n";
+	output += " - offspring memoryRecord " + (memoryRecordOffspring.isEmpty() ? "None" : "(start: " + std::to_string(memoryRecordOffspring.start) + ", length: " +std::to_string(memoryRecord.size)+")") + "\n";
 	output += " IP: " + std::to_string(ip) + "\n";
 	output += " Regs: " + std::to_string(regA) + ", "+ std::to_string(regB) + ", " + std::to_string(regC) + "\n";
 	output += " Stack top: " + (!stack.empty() ? std::to_string(stack.top()) : "EMPTY") + "\n";
+	output += " #Errors: " + std::to_string(errors) + "\n";
 
 	return output;
 }
@@ -40,25 +44,33 @@ void LPU::moveIP(uint8_t lastInstr) {
 	if (ip == memoryRecord.start + memoryRecord.size || 
 		lastInstr == (uint8_t)Instr::None) {
 
+		// program can restart on it's own or get punished
+		errors += 1;
 		ip = memoryRecord.start;
 	}
 }
 
 bool LPU::step() {
-	std::cout << "fetch:" << ip << std::endl;
+	std::cout << "fetch: " << ip;
 	std::optional<uint8_t> fetchedInstr = memPtr->fetch(ip);
 	if (!fetchedInstr.has_value()) {
 		// THIS IS WRONG AND SHOULD BE PUNISHED
+		errors += 1;
 		
 		ip = memoryRecord.start;
 		return false;
 	}
 
-	std::cout << instrToStringMap.at(fetchedInstr.value()) << std::endl;
+	std::cout << " - "<< instrToStringMap.at(fetchedInstr.value()) << std::endl;
 	bool result = decode(fetchedInstr.value(), ip);
 
 	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
 	moveIP(fetchedInstr.value());
+
+	// punish failed instructions
+	if (!result) {
+		errors += 1;
+	}
 
 	return result;
 }
@@ -93,7 +105,6 @@ bool LPU::decode(uint8_t instr, uint64_t address) {
 		case (uint8_t)Instr::divide: return divide(address);
 		default: return false;
 	}
-
 }
 
 /*
@@ -292,12 +303,10 @@ bool LPU::maloc(uint64_t address) {
 	// maloc size has to be bigger than 0
 	if (regC == 0) return false;
 	// cannot allocate another space when one offspring already exists
-	if (memoryRecordOffspring.size != 0) return false;
+	if (!memoryRecordOffspring.isEmpty()) return false;
 
-	std::optional<MemorySpace> allocatedSpace = memPtr->allocate(address, regC);
-	if(!allocatedSpace) {
-		return false;
-	}
+	std::optional<MemorySpace> allocatedSpace = memPtr->allocate(address, regC, handle);
+	if(!allocatedSpace) return false;
 
 	memoryRecordOffspring = allocatedSpace.value();
 	regC = memoryRecordOffspring.start;
@@ -307,11 +316,16 @@ bool LPU::maloc(uint64_t address) {
 
 bool LPU::divide(uint64_t address) {
 	// offspring must be at least allocated
-	if (memoryRecordOffspring.size == 0) return false;
+	if (memoryRecordOffspring.isEmpty()) return false;
 
-	managerPtr->addLpu(memoryRecordOffspring);
+	std::cout << "################# DOING DIVISION" << std::endl;
 
-	memoryRecordOffspring = MemorySpace{0,0}; // reset memoryRecordOffspring
+	managerPtr->addLPU(handle, std::move(memoryRecordOffspring));
+
+	memoryRecordOffspring = MemorySpace::EMPTY(); // reset memoryRecordOffspring
+
+	std::cout << "################# DIVISION DONE" << std::endl;
+	std::cout << std::string(*this) << std::endl;
 
 	return true;
 }

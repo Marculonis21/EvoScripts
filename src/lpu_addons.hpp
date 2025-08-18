@@ -1,8 +1,22 @@
-#ifndef LPU_ADDONS_HPP
-#define LPU_ADDONS_HPP 
+#pragma once
+
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+
+struct LPUHandle {
+	uint64_t id;
+
+	bool operator==(const LPUHandle &other) const {
+		return other.id == id;
+	}
+	struct Hash {
+		uint64_t operator()(const LPUHandle &h) const noexcept {
+			return std::hash<uint64_t>()(h.id);
+		}
+	};
+};
+
 
 enum class Instr : uint8_t {
 	None   = 0x00,
@@ -92,4 +106,3 @@ const std::unordered_map<std::string, Instr> stringToInstrMap {
 	{"divide", Instr::divide },
 };
 
-#endif /* ifndef LPU_ADDONS_HPP */

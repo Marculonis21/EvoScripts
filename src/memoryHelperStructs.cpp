@@ -1,4 +1,12 @@
 #include "memoryHelperStructs.hpp"
+#include <cstdint>
+#include <pstl/glue_algorithm_defs.h>
+#include <iostream>
+
+MemorySpace::MemorySpace(uint64_t start, uint64_t size) {
+    this->start = start;
+    this->size = size;
+}
 
 bool MemorySpace::contains(uint64_t address) const {
     return start <= address && address < start+size;
@@ -17,6 +25,10 @@ bool MemorySpace::collides(MemorySpace other) const {
             (other.start <= this->start && other.start+other.size >= this->start+this->size));
 }
 
+bool MemorySpace::isEmpty() const {
+    return this->size == 0;
+}
+
 AllocSpacesContainer::AllocSpacesContainer(uint64_t memorySize) {
     // boundary memorySpaces
     allocatedSpaces.push_back(MemorySpace{0,0});
@@ -31,6 +43,14 @@ void AllocSpacesContainer::insert(MemorySpace inserted) {
     allocatedSpaces.insert(allocatedSpaces.cbegin() + fitIndex, inserted);
 }
 
+void AllocSpacesContainer::erase(MemorySpace erased) {
+
+	std::cout << "### ERASE - Pos: " << erased.start << " Size: " << erased.size << std::endl;
+    /* allocatedSpaces.erase(std::remove(allocatedSpaces.begin(), allocatedSpaces.end(), erased), allocatedSpaces.end()); */
+    /* allocatedSpaces.erase(std::remove(allocatedSpaces.begin(), allocatedSpaces.end(), erased), allocatedSpaces.end()); */
+    allocatedSpaces.erase(std::find(allocatedSpaces.begin(), allocatedSpaces.end(), erased));
+}
+
 int AllocSpacesContainer::findInsertIndex(const MemorySpace &testSpace) const {
     return fitBinarySearch(testSpace, 0, allocatedSpaces.size()-1);
 }
@@ -38,18 +58,13 @@ int AllocSpacesContainer::findInsertIndex(const MemorySpace &testSpace) const {
 int AllocSpacesContainer::fitBinarySearch(const MemorySpace &testSpace, int low, int high) const {
 	// return the index of an element in the sorted array after which the
 	// `testSpace` should be inserted to keep the sorted invariant
-    
-    if (high-low == 0) { 
-        if (testSpace.start < allocatedSpaces[low].start) {
-            return low;
-        }
-        else {
-            return low+1;
-        }
+
+    if (low >= high) {
+        return low;
     }
 
-	int middle = low + (high-low)/2;
-
+    int middle = low + (high - low) / 2;
+    
     if (testSpace.start < allocatedSpaces[middle].start) {
         return fitBinarySearch(testSpace, low, middle);
     }

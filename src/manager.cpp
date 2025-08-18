@@ -1,95 +1,91 @@
 #include "manager.hpp"
-#include "allocStrategy.hpp"
 #include "esParser.hpp"
+#include "lpu.hpp"
 #include "memory.hpp"
 #include "memoryHelperStructs.hpp"
 #include "visualizer.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <memory>
-#include <queue>
+#include <deque>
 #include <stdexcept>
 #include <string>
+#include <sys/types.h>
+#include <vector>
 
 Manager::Manager() {
+	this->stepCounter = 0;
+	this->lpuIDCounter = 0;
+
 	memory = std::make_unique<BaseMemoryType>(
 		300, 
-		std::unique_ptr<AllocStrategy>(new AllocFirstFit()));
-	/* lpuPopulation.reserve(10); */
+		std::unique_ptr<AllocStrategy>(new AllocFirstFit()),
+		std::unique_ptr<MemoryCleanerStrategy>(new ErrorFirstCleanerStrategy(this))
+	);
+	/* lpuPopulation.reserve(36); */
 
-	MemorySpace ancestorRecord = insertAnimal("ancestors/tester.es");
+	MemorySpace ancestorRecord = this->insert("ancestors/tester.es");
 	if (ancestorRecord.size == 0) {
 		throw std::invalid_argument("first animal insert failed");
 	} else {
-		addLpu(ancestorRecord);
+		addLPU(LPUHandle{}, std::move(ancestorRecord));
 	}
 
-	std::cout << std::string(lpuPopulation[0]) << std::endl;
+	std::cout << std::string(*lpuPopulation.get(LPUHandle{0})) << std::endl;
 	this->visualizer =
 		std::unique_ptr<VisualizerStrategy>(new CLIvisualizer(memory.get()));
 }
 
-void Manager::addLpu(MemorySpace newMemoryRecord) {
-	lpuPopulation.emplace_back(memory.get(), this, std::move(newMemoryRecord));
-	std::cout << "ADDED -> new pop: " << lpuPopulation.size()  << std::endl;
-	processQueue.push(&lpuPopulation.back());
+
+void Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
+	lpuPopulation.addLPU(predecessor, memory.get(), this, std::move(newMemoryRecord), 0);
+
+	std::cout << "Added new lpu " << std::endl;
 }
 
-void Manager::stepDebug(int lpuId) {
-	std::string input;
-	std::cout << "Step debug for lpu " << lpuId << std::endl;
-
-	bool lastStepRes = true;
-
-	LPU lpu = lpuPopulation[lpuId];
-
-	while (true) {
-		this->visualizer->print();
-		printf("\n");
-		// print moving window around current ip in memory
-		for (uint64_t i = lpu.currentIP() - 2; i < lpu.currentIP() + 3; ++i) {
-			printf("%2ld| %s", i,
-				   LPU::decode_tostring(memory->fetch(i).value_or(0)).c_str());
-			if (i == lpu.currentIP()) {
-				printf("   <--- CURRENT LINE");
+void Manager::removeLPU(LPUHandle handle) {
+	auto records = lpuPopulation.select<std::pair<MemorySpace, MemorySpace>>([handle](LPU* lpu)->std::pair<MemorySpace,MemorySpace>{
+			if (lpu->getHandle() == handle) {
+				return std::make_pair(lpu->memoryRecord, lpu->memoryRecordOffspring);
 			}
-			printf("\n");
+			else {
+				return std::make_pair(MemorySpace::EMPTY(), MemorySpace::EMPTY());
+			}});
+
+	for (int i = 0; i < records.size(); ++i) {
+		auto main = records[i].second.first;
+		auto off = records[i].second.second;
+
+		if (main.isEmpty()) { continue; }
+
+		memory->allocatedSpaces.erase(main);
+		if (!off.isEmpty()) {
+			memory->allocatedSpaces.erase(off);
 		}
-		printf("\n%s\n", std::string(lpu).c_str());
-
-		printf("LastStep Result: %d\n", lastStepRes);
-
-		printf("Pop size: %ld\n", lpuPopulation.size());
-
-		if (lpu.currentIP() == 100 || lpu.currentIP() == 123 ||
-			lpu.currentIP() == 124 || lpu.currentIP() == 125) {
-
-			auto x = std::cin.get();
-			if (x == 'q') {
-				break;
-			}
-		}
-
-		lastStepRes = lpu.step();
 	}
+
+	lpuPopulation.removeLPU(handle);
+	std::cout << "Removed lpu (Handle id: " << handle.id << ")" << std::endl;
 }
 
-MemorySpace Manager::insertAnimal(const std::string &filename) {
+MemorySpace Manager::insert(const std::string &filename) {
 	std::vector<Instr> ancestorCommands;
 	try {
 		ancestorCommands = ESParses::parseFile(filename);
 	} catch (std::invalid_argument &e) {
 		std::cout << "Problem with parsing ancestor file:" << std::endl;
 		std::cout << "Error: " << e.what() << std::endl;
-		return MemorySpace();
+		return MemorySpace::EMPTY();
 	}
 
 	MemorySpace mRecord =
-		memory->allocate(memory->getMemorySize() / 2, ancestorCommands.size())
+		memory->allocate(memory->getMemorySize() / 2, ancestorCommands.size(), LPUHandle{})
 			.value();
+
 	if (mRecord.size == 0) {
-		return MemorySpace();
+		return MemorySpace::EMPTY();
 	}
 
 	for (int i = 0; i < ancestorCommands.size(); ++i) {
@@ -101,27 +97,13 @@ MemorySpace Manager::insertAnimal(const std::string &filename) {
 
 void Manager::sim() {
 	const int stepsAllowed = 10;
-	processQueue = std::queue<LPU*>();
 
 	uint64_t iter = 0;
 	while (1) {
 		iter += 1;
-		printf("Iteration %lu: pop size %lu\n", iter, lpuPopulation.size());
+		printf("Iteration %lu: \n", iter);
+		/* printf("Iteration %lu: pop size %lu\n", iter, lpuPopulation.size()); */
 
-		// create queue to be processed
-        for (auto &&lpu : this->lpuPopulation) {
-			processQueue.push(&lpu);
-		}
-
-
-		for (; !processQueue.empty(); processQueue.pop())
-		{
-			LPU *lpu = processQueue.front();
-			std::cout << std::string(*lpu) << std::endl;
-			for (int i = 0; i < stepsAllowed; ++i) {
-				lpu->step();
-				std::cout << "step done" << std::endl;
-			}
-		}
+		lpuPopulation.process(stepsAllowed);
 	}
 }

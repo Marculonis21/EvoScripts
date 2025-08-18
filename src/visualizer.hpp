@@ -1,5 +1,4 @@
-#ifndef VISUALIZER_HPP
-#define VISUALIZER_HPP
+#pragma once
 
 #include "memory.hpp"
 
@@ -17,5 +16,3 @@ class CLIvisualizer : public VisualizerStrategy {
     CLIvisualizer(BaseMemoryType *memPtr) : VisualizerStrategy(memPtr) {}
 	void print() const override;
 };
-
-#endif
