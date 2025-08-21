@@ -163,3 +163,26 @@ sim project in mind.
 From what I remember, I am missing some type of memory cleaner (the killer
 robot) and maybe some changes to how programs are structured in the map. Tests
 and that's probably it... We'll see how far off I am xD
+
+#### 2025-08-18 11:50 -- Been doing some work
+
+I came back and have been doing some work on the project again. A whole bunch
+of finding where the issues were before I left. I refactored a lot of process
+queue stuff around the manager, which helped me do the whole adding/removing of
+LPUs while running much better. 
+
+Some tests are incoming, while I still need to fix some issues.
+
+#### 2025-08-21 10:13 -- Randomness to go
+
+It feels like that the sim is running stable at even mid sized memory arrays.
+However, it is not interesting as of now... Why you ask? Element of randomness
+is missing!
+
+I need to add randomness to a few points in the cycle. Proposals:
+* cosmic ray radiation bitflipping (memory)
+* cosmic ray radiation bitflipping (register/stack var)?
+* copy instruction errors
+* maybe a *small small* chance to not go for the first *pattern binding site*
+* maybe maybe a *small small small* fail rate on instruction fetching
+ (different instruction -- off by one or completely different?)

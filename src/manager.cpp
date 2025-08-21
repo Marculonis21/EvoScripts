@@ -4,12 +4,10 @@
 #include "memory.hpp"
 #include "memoryHelperStructs.hpp"
 #include "visualizer.hpp"
-#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <memory>
-#include <deque>
 #include <stdexcept>
 #include <string>
 #include <sys/types.h>
@@ -20,7 +18,7 @@ Manager::Manager() {
 	this->lpuIDCounter = 0;
 
 	memory = std::make_unique<BaseMemoryType>(
-		300, 
+		1000, 
 		std::unique_ptr<AllocStrategy>(new AllocFirstFit()),
 		std::unique_ptr<MemoryCleanerStrategy>(new ErrorFirstCleanerStrategy(this))
 	);
@@ -35,7 +33,8 @@ Manager::Manager() {
 
 	std::cout << std::string(*lpuPopulation.get(LPUHandle{0})) << std::endl;
 	this->visualizer =
-		std::unique_ptr<VisualizerStrategy>(new CLIvisualizer(memory.get()));
+		/* std::unique_ptr<VisualizerStrategy>(new CLIVisualizer(memory.get())); */
+		std::unique_ptr<VisualizerStrategy>(new TXTFileVisualizer(memory.get(), "memOutput.txt"));
 }
 
 
@@ -48,11 +47,14 @@ void Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
 void Manager::removeLPU(LPUHandle handle) {
 	auto records = lpuPopulation.select<std::pair<MemorySpace, MemorySpace>>([handle](LPU* lpu)->std::pair<MemorySpace,MemorySpace>{
 			if (lpu->getHandle() == handle) {
-				return std::make_pair(lpu->memoryRecord, lpu->memoryRecordOffspring);
+				return lpu->getMemRecords();
 			}
 			else {
 				return std::make_pair(MemorySpace::EMPTY(), MemorySpace::EMPTY());
 			}});
+
+	lpuPopulation.removeLPU(handle);
+	std::cout << "Removed lpu (Handle id: " << handle.id << ")" << std::endl;
 
 	for (int i = 0; i < records.size(); ++i) {
 		auto main = records[i].second.first;
@@ -65,9 +67,6 @@ void Manager::removeLPU(LPUHandle handle) {
 			memory->allocatedSpaces.erase(off);
 		}
 	}
-
-	lpuPopulation.removeLPU(handle);
-	std::cout << "Removed lpu (Handle id: " << handle.id << ")" << std::endl;
 }
 
 MemorySpace Manager::insert(const std::string &filename) {
@@ -98,11 +97,11 @@ MemorySpace Manager::insert(const std::string &filename) {
 void Manager::sim() {
 	const int stepsAllowed = 10;
 
-	uint64_t iter = 0;
-	while (1) {
-		iter += 1;
+	for (uint64_t iter = 0; ; ++iter) {
+
 		printf("Iteration %lu: \n", iter);
-		/* printf("Iteration %lu: pop size %lu\n", iter, lpuPopulation.size()); */
+		if (iter % 100 == 0) { lpuPopulation.clearGraves(); }
+		if (iter % 1000 == 0) { visualizer->print(lpuPopulation); }
 
 		lpuPopulation.process(stepsAllowed);
 	}

@@ -32,6 +32,7 @@ class LPU {
 	uint64_t currentIP() const { return ip; }
 	uint64_t errorCount() const { return errors; }
 	LPUHandle getHandle() const { return handle; }
+	std::pair<const MemorySpace, const MemorySpace> getMemRecords() const { return std::make_pair(memoryRecord, memoryRecordOffspring); }
 
   private:
 	LPUHandle handle;
@@ -83,6 +84,4 @@ class LPU {
 	bool pop_c(uint64_t address);
 	bool maloc(uint64_t address);
 	bool divide(uint64_t address);
-	
-	friend Manager;
 };

@@ -10,11 +10,12 @@ class LPUPool {
   public:
 	  void addLPU(LPUHandle predecessor, BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace &&memoryRecord, uint64_t dateofbirth);
 	  void removeLPU(LPUHandle handle);
-	  LPU* get(LPUHandle handle);
+	  LPU* get(LPUHandle handle) const;
 	  void process(size_t lpuSteps);
+	  void clearGraves();
 
 	  template<typename T>
-	  std::vector<std::pair<LPUHandle, T>> select(std::function<T(LPU*)> selector) {
+	  std::vector<std::pair<LPUHandle, T>> select(std::function<T(LPU*)> selector) const {
 		  std::vector<std::pair<LPUHandle, T>> output;
 		  for (size_t i = 0; i < handleQueue.size(); ++i) { 
 			  auto handle = handleQueue[i]; 

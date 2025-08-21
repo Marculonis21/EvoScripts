@@ -71,7 +71,7 @@ std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 		std::cout << "INSERTED SOMEWHERE!" << std::endl;
 		allocatedSpaces.insert(space.value());
 	}
-	auto x = std::cin.get();
+	/* auto x = std::cin.get(); */
 
 	return space;
 }

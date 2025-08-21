@@ -7,13 +7,12 @@
 
 #include "lpu.hpp"
 #include "manager.hpp"
-#include "memoryHelperStructs.hpp"
 
 ErrorFirstCleanerStrategy::ErrorFirstCleanerStrategy(Manager *managerPtr) {
 	this->managerPtr = managerPtr;
 }
 
-MemorySpace ErrorFirstCleanerStrategy::clean(LPUHandle caller) const {
+void ErrorFirstCleanerStrategy::clean(LPUHandle caller) const {
 	auto popErrors = managerPtr->selectLPUs<uint64_t>(
 			[](LPU* lpu) -> uint64_t{
 				return lpu->errorCount();
@@ -41,4 +40,6 @@ MemorySpace ErrorFirstCleanerStrategy::clean(LPUHandle caller) const {
 	std::cout << "ID: " << worstHandle.id << " Errors: " << std::to_string(mostErrors) << std::endl;
 
 	managerPtr->removeLPU(worstHandle);
+
+	/* auto x = std::cin.get(); */
 }
