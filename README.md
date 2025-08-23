@@ -184,5 +184,15 @@ I need to add randomness to a few points in the cycle. Proposals:
 * cosmic ray radiation bitflipping (register/stack var)?
 * copy instruction errors
 * maybe a *small small* chance to not go for the first *pattern binding site*
-* maybe maybe a *small small small* fail rate on instruction fetching
  (different instruction -- off by one or completely different?)
+
+#### 2025-08-24 01:31 -- Randomness might be running
+
+Well this seems to be running, I am ironning out the kinks in the system,
+because well randomness gives some unexpected results xD But all good.
+
+The thing that I am kinda missing now is a `Pokedex` -- a specie book which
+would show me alive (and historical) species. My idea, probably close to the
+original, is to have an exact match for a specific specie and write them into
+the history books if it mates at least once so we remember only the working
+individuals.

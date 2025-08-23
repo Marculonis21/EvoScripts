@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lpu.hpp"
+#include "randomizer.hpp"
 #include <cstdint>
 #include <functional>
 #include <unordered_map>
@@ -8,11 +9,14 @@
 
 class LPUPool {
   public:
-	  void addLPU(LPUHandle predecessor, BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace &&memoryRecord, uint64_t dateofbirth);
+	  void addLPU(LPUHandle predecessor, BaseMemoryType *memPtr, Manager *managerPtr, Randomizer *randomizerPtr, MemorySpace &&memoryRecord, uint64_t dateofbirth);
 	  void removeLPU(LPUHandle handle);
 	  LPU* get(LPUHandle handle) const;
 	  void process(size_t lpuSteps);
 	  void clearGraves();
+
+	  LPU* getQueue(size_t i) const;
+	  size_t queueSize() const;
 
 	  template<typename T>
 	  std::vector<std::pair<LPUHandle, T>> select(std::function<T(LPU*)> selector) const {

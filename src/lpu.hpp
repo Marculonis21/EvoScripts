@@ -13,7 +13,7 @@ class Manager;
 
 class LPU {
   public:
-	LPU(LPUHandle handle, BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord, uint64_t dateofbirth);
+	LPU(LPUHandle handle, BaseMemoryType *memPtr, Manager *managerPtr, Randomizer *randomizerPtr, MemorySpace memoryRecord, uint64_t dateofbirth);
 	bool step();
 	operator std::string() const;
 
@@ -49,6 +49,7 @@ class LPU {
 	// just observers so I won't care about dangling pointers
 	BaseMemoryType *memPtr;
 	Manager *managerPtr;
+	Randomizer *randomizerPtr;
 
 	MemorySpace memoryRecord;
 	MemorySpace memoryRecordOffspring;

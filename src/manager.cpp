@@ -35,11 +35,13 @@ Manager::Manager() {
 	this->visualizer =
 		/* std::unique_ptr<VisualizerStrategy>(new CLIVisualizer(memory.get())); */
 		std::unique_ptr<VisualizerStrategy>(new TXTFileVisualizer(memory.get(), "memOutput.txt"));
+
+	this->randomizer = std::make_unique<Randomizer>(memory.get());
 }
 
 
 void Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
-	lpuPopulation.addLPU(predecessor, memory.get(), this, std::move(newMemoryRecord), 0);
+	lpuPopulation.addLPU(predecessor, memory.get(), this, randomizer.get(), std::move(newMemoryRecord), 0);
 
 	std::cout << "Added new lpu " << std::endl;
 }
@@ -97,12 +99,23 @@ MemorySpace Manager::insert(const std::string &filename) {
 void Manager::sim() {
 	const int stepsAllowed = 10;
 
+	LPU* lpu;
 	for (uint64_t iter = 0; ; ++iter) {
-
 		printf("Iteration %lu: \n", iter);
 		if (iter % 100 == 0) { lpuPopulation.clearGraves(); }
-		if (iter % 1000 == 0) { visualizer->print(lpuPopulation); }
+		if (iter % 10000 == 0) { visualizer->print(lpuPopulation); }
 
-		lpuPopulation.process(stepsAllowed);
+		for (size_t i = 0; i < lpuPopulation.queueSize(); ++i) {
+			lpu = lpuPopulation.getQueue(i);
+			if (!lpu) { continue; }
+
+			std::cout << "Processing ID: " << lpu->getHandle().id << std::endl;
+			for (size_t _ = 0; _ < stepsAllowed; ++_) {
+				randomizer->process();
+
+				lpu->step();
+			}
+		}
+		/* lpuPopulation.process(stepsAllowed); */
 	}
 }

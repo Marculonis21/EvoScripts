@@ -8,8 +8,8 @@
 #include <string>
 #include <stack>
 
-LPU::LPU(LPUHandle handle, BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace memoryRecord, uint64_t dateofbirth) : 
-	handle(handle), memPtr(memPtr), managerPtr(managerPtr), memoryRecord(memoryRecord), dateofbirth(dateofbirth) {
+LPU::LPU(LPUHandle handle, BaseMemoryType *memPtr, Manager *managerPtr, Randomizer *randomizerPtr, MemorySpace memoryRecord, uint64_t dateofbirth) : 
+	handle(handle), memPtr(memPtr), managerPtr(managerPtr), randomizerPtr(randomizerPtr), memoryRecord(memoryRecord), dateofbirth(dateofbirth) {
 
 	ip = memoryRecord.start;
 	memoryRecordOffspring = MemorySpace::EMPTY();
@@ -61,7 +61,7 @@ bool LPU::step() {
 		return false;
 	}
 
-	std::cout << " - "<< instrToStringMap.at(fetchedInstr.value()) << std::endl;
+	std::cout << " - "<< LPU::decode_tostring(fetchedInstr.value()) << std::endl;
 	bool result = decode(fetchedInstr.value(), ip);
 
 	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
@@ -257,7 +257,7 @@ bool LPU::sub_ab(uint64_t address) {
  * [regB]
  */
 bool LPU::movi(uint64_t address) {
-	return memPtr->copy(memoryRecord, memoryRecordOffspring, regA, regB);
+	return memPtr->copy(memoryRecord, memoryRecordOffspring, regA, regB, randomizerPtr);
 }
 
 bool LPU::push_a(uint64_t address) {
@@ -304,6 +304,8 @@ bool LPU::maloc(uint64_t address) {
 	if (regC == 0) return false;
 	// cannot allocate another space when one offspring already exists
 	if (!memoryRecordOffspring.isEmpty()) return false;
+	// let's not allow huge huge size expansion - most likely due to bug
+	if (regC > memoryRecord.size * 5) return false;
 
 	std::optional<MemorySpace> allocatedSpace = memPtr->allocate(address, regC, handle);
 	if(!allocatedSpace) return false;

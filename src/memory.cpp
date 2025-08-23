@@ -3,6 +3,7 @@
 #include "lpu_addons.hpp"
 #include "memoryCleaner.hpp"
 #include "memoryHelperStructs.hpp"
+#include "randomizer.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -44,6 +45,10 @@ std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 													LPUHandle caller) {
 
 	std::cout << "ALLOCATION FUNC" << std::endl;
+
+	if (memory.size() < size) {
+		return std::nullopt;
+	}
 	// base case with fresh memory - fresh but two boundary spaces, are alright
 	// TODO:: what about checking if user does not specify some bullshit first
 	// memory space... ought to happen at least once...
@@ -272,12 +277,14 @@ bool BaseMemoryType::write(const MemorySpace &lpuSpace, uint64_t address,
 
 bool BaseMemoryType::copy(const MemorySpace &lpuSpace,
 						  const MemorySpace &lpuSpaceOffspring,
-						  uint64_t addressFrom, uint64_t addressTo) {
+						  uint64_t addressFrom, uint64_t addressTo,
+						  Randomizer *randomizer) {
 	if (!lpuSpace.contains(addressTo) &&
 		!lpuSpaceOffspring.contains(addressTo)) {
 		return false;
 	}
 
-	memory[addressTo] = memory[addressFrom];
+	memory[addressTo] = !randomizer ? memory[addressFrom] : randomizer->cp_instr_process(memory[addressFrom]);
+
 	return true;
 }

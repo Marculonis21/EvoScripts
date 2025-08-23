@@ -4,6 +4,7 @@
 #include "memory.hpp"
 #include "memoryHelperStructs.hpp"
 #include "visualizer.hpp"
+#include "randomizer.hpp"
 #include <memory>
 #include <vector>
 
@@ -25,6 +26,8 @@ class Manager {
 	LPUPool lpuPopulation;
 
 	std::unique_ptr<VisualizerStrategy> visualizer;
+
+	std::unique_ptr<Randomizer> randomizer;
 
 	MemorySpace insert(const std::string &filename);
 

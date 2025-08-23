@@ -1,12 +1,13 @@
 #include "lpu_pool.hpp"
+#include "randomizer.hpp"
 #include <algorithm>
 #include <iostream>
 #include <vector>
 
-void LPUPool::addLPU(LPUHandle predecessor, BaseMemoryType *memPtr, Manager *managerPtr, MemorySpace &&memoryRecord, uint64_t dateofbirth) {
+void LPUPool::addLPU(LPUHandle predecessor, BaseMemoryType *memPtr, Manager *managerPtr, Randomizer *randomizerPtr, MemorySpace &&memoryRecord, uint64_t dateofbirth) {
 
 	LPUHandle handle{nextID++};
-	auto lpu = std::make_unique<LPU>(handle, memPtr, managerPtr, std::move(memoryRecord), dateofbirth);
+	auto lpu = std::make_unique<LPU>(handle, memPtr, managerPtr, randomizerPtr, std::move(memoryRecord), dateofbirth);
 	lpuPool.emplace(handle, std::move(lpu));
 
 	if (handleQueue.size() == 0) {
@@ -66,7 +67,7 @@ void LPUPool::clearGraves() {
 							  }), handleQueue.end());
 
 	std::cout << "HandleQueue clear procedure: " << dead.size() << " elements cleared" << std::endl;
-	auto x = std::cin.get();
+	/* auto x = std::cin.get(); */
 }
 
 void LPUPool::process(size_t lpuSteps) {
@@ -81,4 +82,12 @@ void LPUPool::process(size_t lpuSteps) {
 			lpu->step();
 		}
 	}
+}
+
+LPU* LPUPool::getQueue(size_t i) const {
+	return get(handleQueue[i]);
+}
+
+size_t LPUPool::queueSize() const {
+	return handleQueue.size();
 }

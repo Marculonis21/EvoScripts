@@ -9,6 +9,8 @@
 #include <optional>
 #include <vector>
 
+class Randomizer;
+
 class BaseMemoryType {
 	public:
 		BaseMemoryType(uint64_t size, 
@@ -21,7 +23,7 @@ class BaseMemoryType {
 		virtual uint64_t getMemorySize() const;
 
 		virtual bool write(const MemorySpace &lpuSpace, uint64_t addressTo, uint8_t payload);
-		virtual bool copy(const MemorySpace &lpuSpace, const MemorySpace &lpuSpaceOffspring, uint64_t addressFrom, uint64_t addressTo);
+		virtual bool copy(const MemorySpace &lpuSpace, const MemorySpace &lpuSpaceOffspring, uint64_t addressFrom, uint64_t addressTo, Randomizer *randomizer);
 
 		virtual MatchResult matchTemplate(uint64_t address) const;
 		virtual MatchResult matchTemplateForward(uint64_t address) const;
@@ -41,4 +43,5 @@ class BaseMemoryType {
 		virtual std::vector<MatchSearchHit> findMatchingTemplateBackward(uint64_t address, TemplateInfo pattern) const;
 
 		friend Manager;
+		friend Randomizer;
 };
