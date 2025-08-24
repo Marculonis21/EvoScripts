@@ -46,7 +46,7 @@ std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 
 	std::cout << "ALLOCATION FUNC" << std::endl;
 
-	if (memory.size() < size) {
+	if (memory.size() < size*0.25) {
 		return std::nullopt;
 	}
 	// base case with fresh memory - fresh but two boundary spaces, are alright

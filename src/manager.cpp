@@ -18,7 +18,7 @@ Manager::Manager() {
 	this->lpuIDCounter = 0;
 
 	memory = std::make_unique<BaseMemoryType>(
-		1000, 
+		10000, 
 		std::unique_ptr<AllocStrategy>(new AllocFirstFit()),
 		std::unique_ptr<MemoryCleanerStrategy>(new ErrorFirstCleanerStrategy(this))
 	);
