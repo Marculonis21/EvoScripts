@@ -42,8 +42,8 @@ Manager::Manager() {
 	}
 }
 
-void Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
-	lpuPopulation.addLPU(predecessor, observers, std::move(newMemoryRecord), 0);
+LPU* Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
+	return lpuPopulation.addLPU(predecessor, observers, std::move(newMemoryRecord), 0);
 
 	/* std::cout << "Added new lpu " << std::endl; */
 }
@@ -99,13 +99,15 @@ MemorySpace Manager::insert(const std::string &filename) {
 }
 
 void Manager::sim() {
-	const int stepsAllowed = 10;
+	const int stepsAllowed = 100;
 
 	LPU* lpu;
 	for (uint64_t iter = 0; ; ++iter) {
 		printf("Iteration %lu \n", iter);
 		if (iter % 100 == 0) { lpuPopulation.clearGraves(); }
-		if (iter % 100000 == 0) { visualizer->print(lpuPopulation); }
+		if (iter % 10000 == 0) { 
+			visualizer->print(lpuPopulation); 
+		}
 
 		for (size_t i = 0; i < lpuPopulation.queueSize(); ++i) {
 			lpu = lpuPopulation.getQueue(i);

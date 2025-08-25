@@ -3,8 +3,7 @@
 #include <iostream>
 #include <vector>
 
-void LPUPool::addLPU(LPUHandle predecessor, const LPUObservers &observers, MemorySpace &&memoryRecord, uint64_t dateofbirth) {
-
+LPU* LPUPool::addLPU(LPUHandle predecessor, const LPUObservers &observers, MemorySpace &&memoryRecord, uint64_t dateofbirth) {
 	LPUHandle handle{nextID++};
 	auto lpu = std::make_unique<LPU>(handle, predecessor, observers, std::move(memoryRecord), dateofbirth);
 	lpuPool.emplace(handle, std::move(lpu));
@@ -12,13 +11,15 @@ void LPUPool::addLPU(LPUHandle predecessor, const LPUObservers &observers, Memor
 	if (handleQueue.size() == 0) {
 		std::cout << "ADDING FIRST LPU" << std::endl;
 		handleQueue.push_back(handle);
-		return;
+	}
+	else {
+		auto iter = std::find(handleQueue.begin(), handleQueue.end(), predecessor);
+		assert(iter != handleQueue.end() && "I hope predecessor always exists somewhere");
+
+		handleQueue.insert(iter+1, handle);
 	}
 
-	auto iter = std::find(handleQueue.begin(), handleQueue.end(), predecessor);
-	assert(iter != handleQueue.end() && "I hope predecessor always exists somewhere");
-
-	handleQueue.insert(iter+1, handle);
+	return get(handle);
 }
 
 
@@ -48,7 +49,7 @@ void LPUPool::clearGraves() {
 								  return std::find(dead.begin(), dead.end(), x) != dead.end();
 							  }), handleQueue.end());
 
-	std::cout << "HandleQueue clear procedure: " << dead.size() << " elements cleared" << std::endl;
+	/* std::cout << "HandleQueue clear procedure: " << dead.size() << " elements cleared" << std::endl; */
 }
 
 LPU* LPUPool::getQueue(size_t i) const {

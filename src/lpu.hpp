@@ -44,7 +44,6 @@ class LPU {
 	LPUHandle getHandle() const { return handle; }
 	std::pair<const MemorySpace, const MemorySpace> getMemRecords() const { return std::make_pair(memoryRecord, memoryRecordOffspring); }
 
-
 	struct Hash {
 		static uint64_t build(const LPU &lpu);
 
@@ -66,23 +65,35 @@ class LPU {
 		}();
 	};
 
-	struct DexEntry {
-		LPUHandle handle;
-		LPUHandle parent;
-		uint64_t dateofbirth;
-		std::vector<std::uint8_t> instructions;
+	struct Instructions {
+		std::vector<std::uint8_t> vec;
 
-		DexEntry() = default;
-		DexEntry(const LPU &lpu);
+		Instructions() = default;
+		Instructions(const LPU &lpu);
 
-		bool operator==(const DexEntry &other) const {
-			if (other.instructions.size() != instructions.size()) { return false; }
+		bool operator==(const Instructions &other) const {
+			if (vec.size() != other.vec.size()) { return false; }
 
-			for (int i = 0; i < instructions.size(); ++i) {
-				if (other.instructions[i] != instructions[i]) { return false; }
+			for (int i = 0; i < vec.size(); ++i) {
+				if (vec[i] != other.vec[i]) { return false; }
 			}
 
 			return true;
+		}
+	};
+
+	struct Metadata {
+		LPUHandle handle;
+		LPUHandle parent;
+		uint64_t dateofbirth;
+		Instructions instructions;
+		uint64_t occurence=0;
+
+		Metadata() = default;
+		Metadata(const LPU &lpu);
+
+		bool operator==(const Metadata &other) const {
+			return this->instructions == other.instructions;
 		}
 	};
 
@@ -110,7 +121,7 @@ class LPU {
 
 	uint64_t memHash;
 
-	DexEntry dexEntry;
+	Metadata metadata;
 
 	bool decode(uint8_t instr, uint64_t address);
 

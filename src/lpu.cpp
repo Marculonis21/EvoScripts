@@ -34,7 +34,7 @@ LPU::LPU(LPUHandle handle, LPUHandle parent, const LPUObservers &observers, Memo
 	stack = std::stack<uint64_t>();
 
 	memHash = LPU::Hash::build(*this);
-	dexEntry = DexEntry(*this);
+	metadata = Metadata(*this);
 }
 
 uint64_t LPU::Hash::build(const LPU &lpu) {
@@ -49,19 +49,22 @@ uint64_t LPU::Hash::build(const LPU &lpu) {
 	return hash;
 }
 
-LPU::DexEntry::DexEntry(const LPU &lpu) {
-	handle = lpu.handle;
-	parent = lpu.parent;
-	dateofbirth = lpu.dateofbirth;
-
-	instructions.resize(lpu.memoryRecord.size);
+LPU::Instructions::Instructions(const LPU &lpu) {
+	vec.resize(lpu.memoryRecord.size);
 	for (uint64_t i = lpu.memoryRecord.start, x = 0; i < lpu.memoryRecord.start+lpu.memoryRecord.size; ++i) {
-		instructions[x++] = lpu.memPtr->fetch(i).value();
+		vec[x++] = lpu.memPtr->fetch(i).value();
 	}
 }
 
+LPU::Metadata::Metadata(const LPU &lpu) {
+	handle = lpu.handle;
+	parent = lpu.parent;
+	dateofbirth = lpu.dateofbirth;
+	instructions = Instructions(lpu);
+}
+
 bool LPU::operator==(const LPU &other) const {
-		return this->dexEntry == other.dexEntry;
+	return this->metadata == other.metadata;
 }
 
 LPU::operator std::string() const {
@@ -150,8 +153,8 @@ bool LPU::decode(uint8_t instr, uint64_t address) {
 /*
  * nop0, nop1 are no-operation funcs designed for addressing
  */
-bool LPU::nop0(uint64_t address) { return true; }
-bool LPU::nop1(uint64_t address) { return true; }
+bool LPU::nop0(uint64_t address) { return false; }
+bool LPU::nop1(uint64_t address) { return false; }
 
 /*
  * jmp loads in the following template and jumps to a matching template
@@ -360,12 +363,11 @@ bool LPU::divide(uint64_t address) {
 	// offspring must be at least allocated
 	if (memoryRecordOffspring.isEmpty()) return false;
 
-
-	managerPtr->addLPU(handle, std::move(memoryRecordOffspring));
+	LPU* offspring = managerPtr->addLPU(handle, std::move(memoryRecordOffspring));
 
 	memoryRecordOffspring = MemorySpace::EMPTY(); // reset memoryRecordOffspring
 												  
-	evoDex->insert(*this, dexEntry);
+	evoDex->insert(*this, *offspring, metadata);
 
 	return true;
 }

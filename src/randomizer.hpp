@@ -40,7 +40,7 @@ class Randomizer {
 	RandomRes randomRes;
 
 	const double CRR_MEMORY_RATE = 1e-5;
-	const double CRR_STACK_RATE  = 1e-6;
-	const double CP_INSTR_RATE   = 1e-6;
-	const double PTRN_BIND_RATE  = 1e-6;
+	/* const double CRR_STACK_RATE  = 1e-6; */
+	const double CP_INSTR_RATE   = 1e-3;
+	/* const double PTRN_BIND_RATE  = 1e-6; */
 };

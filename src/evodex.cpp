@@ -1,21 +1,25 @@
 #include "evodex.hpp"
-#include <iostream>
 
-void EvoDex::insert(const LPU &lpu, LPU::DexEntry dexEntry) {
-	auto it = dex.find(lpu);
+void EvoDex::insert(const LPU &parent, const LPU &offspring, const LPU::Metadata &metadata) {
+	// Instruction comparison
+	// We are looking for individuals which are able to replicate themselves correctly
+	if (!(parent == offspring)) { return; }
+
+	auto it = dex.find(parent);
 
 	if (it == dex.end()) { 
-		dex.emplace(lpu, Bucket{dexEntry}); 
-		/* auto x = std::cin.get(); */
+		dex.emplace(parent, Bucket{metadata}); 
 		return; 
 	}
 
-	Bucket bucket = dex[lpu];
+	Bucket &bucket = it->second;
 
-	for (auto && entry : bucket) {
-		if (entry == dexEntry) { return; }
+	for (auto &entry : bucket) {
+		if (entry == metadata) { 
+			entry.occurence += 1;
+			return; 
+		}
 	}
-	/* auto x = std::cin.get(); */
 
-	dex[lpu].push_back(dexEntry);
+	dex[parent].push_back(metadata);
 }

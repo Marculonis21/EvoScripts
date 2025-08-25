@@ -8,7 +8,7 @@
 
 class LPUPool {
   public:
-	  void addLPU(LPUHandle predecessor, const LPUObservers &observers, MemorySpace &&memoryRecord, uint64_t dateofbirth);
+	  LPU* addLPU(LPUHandle predecessor, const LPUObservers &observers, MemorySpace &&memoryRecord, uint64_t dateofbirth);
 	  void removeLPU(LPUHandle handle);
 	  LPU* get(LPUHandle handle) const;
 	  void clearGraves();

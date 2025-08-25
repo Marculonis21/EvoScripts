@@ -81,14 +81,14 @@ TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 
 	while (true) {
 		// start loading after the original instr address
-		switch (fetch(address + 1 + offset).value()) {
-		case 0x01: // nop0
-			break;
-		case 0x02:
-			res |= 1 << offset; // nop1
-			break;
-		default:
-			return TemplateInfo{res, offset};
+		switch (fetch(address + 1 + offset).value_or(0)) {
+			case 0x01: // nop0
+				break;
+			case 0x02:
+				res |= 1 << offset; // nop1
+				break;
+			default:
+				return TemplateInfo{res, offset};
 		}
 
 		offset++;
@@ -271,10 +271,8 @@ bool BaseMemoryType::copy(const MemorySpace &lpuSpace,
 						  const MemorySpace &lpuSpaceOffspring,
 						  uint64_t addressFrom, uint64_t addressTo,
 						  Randomizer *randomizer) {
-	if (!lpuSpace.contains(addressTo) &&
-		!lpuSpaceOffspring.contains(addressTo)) {
-		return false;
-	}
+	if (!lpuSpace.contains(addressTo) && !lpuSpaceOffspring.contains(addressTo)) { return false; }
+	if (addressFrom >= memory.size()) { return false; }
 
 	memory[addressTo] = !randomizer ? memory[addressFrom] : randomizer->cp_instr_process(memory[addressFrom]);
 

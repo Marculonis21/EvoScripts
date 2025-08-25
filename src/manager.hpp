@@ -14,7 +14,7 @@ class Manager {
   public:
 	Manager();
 
-	void addLPU(LPUHandle predecessor, MemorySpace &&memoryRecord);
+	LPU* addLPU(LPUHandle predecessor, MemorySpace &&memoryRecord);
 	void removeLPU(LPUHandle handle);
 
 	template<typename T>

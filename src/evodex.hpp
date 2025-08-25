@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
-using Bucket = std::vector<LPU::DexEntry>;
+using Bucket = std::vector<LPU::Metadata>;
 struct EvoDex {
-    void insert(const LPU &lpu, LPU::DexEntry dexEntry);
+    void insert(const LPU &parent, const LPU &offspring, const LPU::Metadata &metadata);
 	std::unordered_map<LPU, Bucket, LPU::Hash> dex;
 };

@@ -49,13 +49,16 @@ void TXTFileVisualizer::print(const LPUPool &pool) const {
 	for (auto && [key, bucket] : evoDexPtr->dex) {
 
 		for (auto && item : bucket) {
+			if (item.occurence < 10) { continue; } 
+
 			file << "ENTRY:" << std::endl;
+			file << "Occurence: " << item.occurence<< std::endl;
 			file << "Handle: " << item.handle.id << " Parent Handle: " << item.parent.id << std::endl;
 			file << "DOB: " << item.dateofbirth << std::endl;
-			file << "Instructions" << std::endl;
+			file << "Instructions (lenght: " << item.instructions.vec.size() << ")" << std::endl;
 
-			for (int i = 0; i < item.instructions.size(); ++i) {
-				uint8_t instr = item.instructions[i];
+			for (int i = 0; i < item.instructions.vec.size(); ++i) {
+				uint8_t instr = item.instructions.vec[i];
 				auto str = LPU::decode_tostring(instr); 
 
 				file << int(i) << " | ";
