@@ -43,9 +43,6 @@ uint64_t BaseMemoryType::getMemorySize() const { return memory.size(); }
 std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 													uint64_t size,
 													LPUHandle caller) {
-
-	std::cout << "ALLOCATION FUNC" << std::endl;
-
 	if (memory.size() < size*0.25) {
 		return std::nullopt;
 	}
@@ -66,17 +63,14 @@ std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 
 		if (space.has_value()) { break; }
 
-		std::cout << "No more space for allocation - calling cleaner" << std::endl;
 		cleanerStrategy->clean(caller);
 	}
 	/* assert(space.has_value() && */
 	/* 	   "THERE IS NO MORE SPACE FOR ALLOCATION PROBABLY..."); */
 
 	if (space) {
-		std::cout << "INSERTED SOMEWHERE!" << std::endl;
 		allocatedSpaces.insert(space.value());
 	}
-	/* auto x = std::cin.get(); */
 
 	return space;
 }
@@ -86,8 +80,6 @@ TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 	uint8_t offset = 0;
 
 	while (true) {
-		std::cout << "loadInTemplate address: " << address + 1 + offset
-				  << std::endl;
 		// start loading after the original instr address
 		switch (fetch(address + 1 + offset).value()) {
 		case 0x01: // nop0
@@ -128,11 +120,11 @@ BaseMemoryType::findMatchingTemplateForward(uint64_t address,
 		} else {
 			check |= 1 << offset;
 			if (offset >= pattern.patternSize) {
-				std::cout << "forward match - check " << std::to_string(check)
-						  << std::endl;
+				/* std::cout << "forward match - check " << std::to_string(check) */
+				/* 		  << std::endl; */
 				test = pattern.pattern ^ check; // xor check
-				std::cout << "forward match - test " << std::to_string(test)
-						  << std::endl;
+				/* std::cout << "forward match - test " << std::to_string(test) */
+				/* 		  << std::endl; */
 				// we didn't turn off any bits
 				if (test > check && ((test + 1) & test) == 0) {
 					// matching pattern found! -- save first pos of template,
@@ -141,11 +133,11 @@ BaseMemoryType::findMatchingTemplateForward(uint64_t address,
 					hitVector.emplace_back(
 						MatchSearchHit{i - offset, (address - (i - offset)) /
 													   float(searchSize)});
-					std::cout << "forward match - hit add "
-							  << std::to_string(i - offset) << ", "
-							  << std::to_string(((i - offset) - address) /
-												float(searchSize))
-							  << std::endl;
+					/* std::cout << "forward match - hit add " */
+					/* 		  << std::to_string(i - offset) << ", " */
+					/* 		  << std::to_string(((i - offset) - address) / */
+					/* 							float(searchSize)) */
+					/* 		  << std::endl; */
 				}
 			}
 
@@ -179,21 +171,21 @@ BaseMemoryType::findMatchingTemplateBackward(uint64_t address,
 		} else {
 			if (offset >= pattern.patternSize) {
 				test = pattern.pattern ^ check; // xor test
-				std::cout << "backward match - check " << std::to_string(check)
-						  << std::endl;
-				std::cout << "backward match - test " << std::to_string(test)
-						  << std::endl;
+				/* std::cout << "backward match - check " << std::to_string(check) */
+				/* 		  << std::endl; */
+				/* std::cout << "backward match - test " << std::to_string(test) */
+				/* 		  << std::endl; */
 				if (test > check && ((test + 1) & test) == 0) {
 					// matching pattern found! -- save first pos of template,
 					// distance from starting address
 					hitVector.emplace_back(
 						MatchSearchHit{i - offset, (address - (i - offset)) /
 													   float(searchSize)});
-					std::cout << "backward match - hit add "
-							  << std::to_string(i - offset) << ", "
-							  << std::to_string((address - (i - offset)) /
-												float(searchSize))
-							  << std::endl;
+					/* std::cout << "backward match - hit add " */
+					/* 		  << std::to_string(i - offset) << ", " */
+					/* 		  << std::to_string((address - (i - offset)) / */
+					/* 							float(searchSize)) */
+					/* 		  << std::endl; */
 				}
 			}
 
@@ -207,15 +199,15 @@ BaseMemoryType::findMatchingTemplateBackward(uint64_t address,
 
 MatchResult BaseMemoryType::matchTemplateBackward(uint64_t address) const {
 	TemplateInfo pattern = loadInTemplate(address);
-	std::cout << "backward - pattern: " << std::to_string(pattern.pattern)
-			  << std::endl;
+	/* std::cout << "backward - pattern: " << std::to_string(pattern.pattern) */
+	/* 		  << std::endl; */
 	if (pattern.patternSize == 0)
 		return MatchResult{false, 0};
 
 	std::vector<MatchSearchHit> hitVector =
 		findMatchingTemplateBackward(address, pattern);
 
-	std::cout << "MATCH BACKWARD BACK" << std::endl;
+	/* std::cout << "MATCH BACKWARD BACK" << std::endl; */
 	if (hitVector.size() == 0) {
 		return MatchResult{false, 0};
 	}
@@ -228,8 +220,8 @@ MatchResult BaseMemoryType::matchTemplateBackward(uint64_t address) const {
 
 MatchResult BaseMemoryType::matchTemplateForward(uint64_t address) const {
 	TemplateInfo pattern = loadInTemplate(address);
-	std::cout << "forward - pattern: " << std::to_string(pattern.pattern)
-			  << std::endl;
+	/* std::cout << "forward - pattern: " << std::to_string(pattern.pattern) */
+	/* 		  << std::endl; */
 	if (pattern.patternSize == 0)
 		return MatchResult{false, 0};
 
@@ -248,8 +240,8 @@ MatchResult BaseMemoryType::matchTemplateForward(uint64_t address) const {
  */
 MatchResult BaseMemoryType::matchTemplate(uint64_t address) const {
 	TemplateInfo pattern = loadInTemplate(address);
-	std::cout << "matchTemplate - pattern: " << std::to_string(pattern.pattern)
-			  << std::endl;
+	/* std::cout << "matchTemplate - pattern: " << std::to_string(pattern.pattern) */
+	/* 		  << std::endl; */
 	if (pattern.patternSize == 0)
 		return MatchResult{false, 0};
 

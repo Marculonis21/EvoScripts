@@ -5,17 +5,27 @@
 #include <cstdint>
 #include <stack>
 #include <string>
+#include <iostream>
 
 #include "lpu_addons.hpp"
 
 // ugly!
 class Manager;
+class EvoDex;
+
+struct LPUObservers {
+	BaseMemoryType *memory;
+	Manager *manager;
+	Randomizer *randomizer;
+	EvoDex *evoDex;
+};
 
 class LPU {
   public:
-	LPU(LPUHandle handle, BaseMemoryType *memPtr, Manager *managerPtr, Randomizer *randomizerPtr, MemorySpace memoryRecord, uint64_t dateofbirth);
+	LPU(LPUHandle handle, LPUHandle parent, const LPUObservers &observers, MemorySpace memoryRecord, uint64_t dateofbirth);
 	bool step();
 	operator std::string() const;
+	bool operator==(const LPU &other) const;
 
 	static std::string decode_tostring(uint8_t instr) {
 		if (instr == 0) {
@@ -34,8 +44,51 @@ class LPU {
 	LPUHandle getHandle() const { return handle; }
 	std::pair<const MemorySpace, const MemorySpace> getMemRecords() const { return std::make_pair(memoryRecord, memoryRecordOffspring); }
 
+
+	struct Hash {
+		static uint64_t build(const LPU &lpu);
+
+		uint64_t operator()(const LPU &lpu) const noexcept {
+			return lpu.memHash;
+		}
+
+		static constexpr uint64_t p = 31;
+		static constexpr uint64_t m = 1e9 + 9;
+
+		// lambda constexpr
+		static constexpr uint64_t N = 10000;
+		static constexpr std::array<uint64_t, N> ppow = [](){
+			std::array<uint64_t, N> ppow{1};
+			for (uint64_t i = 1; i < N; ++i) {
+				ppow[i] = (ppow[i - 1] * p) % m;
+			}
+			return ppow;
+		}();
+	};
+
+	struct DexEntry {
+		LPUHandle handle;
+		LPUHandle parent;
+		uint64_t dateofbirth;
+		std::vector<std::uint8_t> instructions;
+
+		DexEntry() = default;
+		DexEntry(const LPU &lpu);
+
+		bool operator==(const DexEntry &other) const {
+			if (other.instructions.size() != instructions.size()) { return false; }
+
+			for (int i = 0; i < instructions.size(); ++i) {
+				if (other.instructions[i] != instructions[i]) { return false; }
+			}
+
+			return true;
+		}
+	};
+
   private:
 	LPUHandle handle;
+	LPUHandle parent;
 
 	uint64_t regA;
 	uint64_t regB;
@@ -50,9 +103,14 @@ class LPU {
 	BaseMemoryType *memPtr;
 	Manager *managerPtr;
 	Randomizer *randomizerPtr;
+	EvoDex *evoDex;
 
 	MemorySpace memoryRecord;
 	MemorySpace memoryRecordOffspring;
+
+	uint64_t memHash;
+
+	DexEntry dexEntry;
 
 	bool decode(uint8_t instr, uint64_t address);
 

@@ -2,27 +2,68 @@
 #include "lpu_addons.hpp"
 #include "memory.hpp"
 #include "manager.hpp"
+#include "evodex.hpp"
+#include <cstdint>
 #include <iostream>
 #include <cstdio>
 #include <optional>
 #include <string>
 #include <stack>
 
-LPU::LPU(LPUHandle handle, BaseMemoryType *memPtr, Manager *managerPtr, Randomizer *randomizerPtr, MemorySpace memoryRecord, uint64_t dateofbirth) : 
-	handle(handle), memPtr(memPtr), managerPtr(managerPtr), randomizerPtr(randomizerPtr), memoryRecord(memoryRecord), dateofbirth(dateofbirth) {
+LPU::LPU(LPUHandle handle, LPUHandle parent, const LPUObservers &observers, MemorySpace memoryRecord, uint64_t dateofbirth) {
+
+	this->handle = handle;
+	this->parent = parent;
+
+	memPtr = observers.memory;
+	managerPtr = observers.manager;
+	randomizerPtr = observers.randomizer;
+	evoDex = observers.evoDex;
+
+	this->memoryRecord = memoryRecord;
+	this->dateofbirth = dateofbirth;
 
 	ip = memoryRecord.start;
 	memoryRecordOffspring = MemorySpace::EMPTY();
 
-	this->errors = 0;
+	errors = 0;
 
 	regA = uint64_t();
 	regB = uint64_t();
 	regC = uint64_t();
 	stack = std::stack<uint64_t>();
+
+	memHash = LPU::Hash::build(*this);
+	dexEntry = DexEntry(*this);
 }
 
-/* operator std::string() const; */
+uint64_t LPU::Hash::build(const LPU &lpu) {
+	uint64_t hash = 0;
+	uint8_t instr;
+
+	for (uint64_t i = lpu.memoryRecord.start, x = 0; i < lpu.memoryRecord.start+lpu.memoryRecord.size; ++i) {
+		instr = lpu.memPtr->fetch(i).value();
+		hash = (hash + instr * LPU::Hash::ppow[x++]) % LPU::Hash::m;
+	}
+
+	return hash;
+}
+
+LPU::DexEntry::DexEntry(const LPU &lpu) {
+	handle = lpu.handle;
+	parent = lpu.parent;
+	dateofbirth = lpu.dateofbirth;
+
+	instructions.resize(lpu.memoryRecord.size);
+	for (uint64_t i = lpu.memoryRecord.start, x = 0; i < lpu.memoryRecord.start+lpu.memoryRecord.size; ++i) {
+		instructions[x++] = lpu.memPtr->fetch(i).value();
+	}
+}
+
+bool LPU::operator==(const LPU &other) const {
+		return this->dexEntry == other.dexEntry;
+}
+
 LPU::operator std::string() const {
 	std::string output;
 	output += "LPU("+std::to_string(dateofbirth)+") with memoryRecord (start: " + std::to_string(memoryRecord.start) + ", length: " +std::to_string(memoryRecord.size)+")\n";
@@ -51,7 +92,6 @@ void LPU::moveIP(uint8_t lastInstr) {
 }
 
 bool LPU::step() {
-	std::cout << "fetch: " << ip;
 	std::optional<uint8_t> fetchedInstr = memPtr->fetch(ip);
 	if (!fetchedInstr.has_value()) {
 		// THIS IS WRONG AND SHOULD BE PUNISHED
@@ -61,7 +101,7 @@ bool LPU::step() {
 		return false;
 	}
 
-	std::cout << " - "<< LPU::decode_tostring(fetchedInstr.value()) << std::endl;
+	/* std::cout << "fetch: " << ip << " - "<< LPU::decode_tostring(fetchedInstr.value()) << std::endl; */
 	bool result = decode(fetchedInstr.value(), ip);
 
 	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
@@ -320,14 +360,12 @@ bool LPU::divide(uint64_t address) {
 	// offspring must be at least allocated
 	if (memoryRecordOffspring.isEmpty()) return false;
 
-	std::cout << "################# DOING DIVISION" << std::endl;
 
 	managerPtr->addLPU(handle, std::move(memoryRecordOffspring));
 
 	memoryRecordOffspring = MemorySpace::EMPTY(); // reset memoryRecordOffspring
-
-	std::cout << "################# DIVISION DONE" << std::endl;
-	std::cout << std::string(*this) << std::endl;
+												  
+	evoDex->insert(*this, dexEntry);
 
 	return true;
 }

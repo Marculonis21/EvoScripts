@@ -44,11 +44,7 @@ void AllocSpacesContainer::insert(MemorySpace inserted) {
 }
 
 void AllocSpacesContainer::erase(MemorySpace erased) {
-
-	std::cout << "### ERASE - Pos: " << erased.start << " Size: " << erased.size << std::endl;
-    /* allocatedSpaces.erase(std::remove(allocatedSpaces.begin(), allocatedSpaces.end(), erased), allocatedSpaces.end()); */
-    /* allocatedSpaces.erase(std::remove(allocatedSpaces.begin(), allocatedSpaces.end(), erased), allocatedSpaces.end()); */
-    allocatedSpaces.erase(std::find(allocatedSpaces.begin(), allocatedSpaces.end(), erased));
+    allocatedSpaces.erase(std::remove(allocatedSpaces.begin(), allocatedSpaces.end(), erased), allocatedSpaces.end());
 }
 
 int AllocSpacesContainer::findInsertIndex(const MemorySpace &testSpace) const {

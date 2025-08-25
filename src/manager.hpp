@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "evodex.hpp"
+#include "lpu.hpp"
 #include "lpu_pool.hpp"
 #include "memory.hpp"
 #include "memoryHelperStructs.hpp"
@@ -22,12 +24,14 @@ class Manager {
 	void sim();
 
   private:
-	std::unique_ptr<BaseMemoryType> memory;
 	LPUPool lpuPopulation;
 
+	std::unique_ptr<BaseMemoryType> memory;
 	std::unique_ptr<VisualizerStrategy> visualizer;
-
 	std::unique_ptr<Randomizer> randomizer;
+	std::unique_ptr<EvoDex> evoDex;
+
+	LPUObservers observers;
 
 	MemorySpace insert(const std::string &filename);
 

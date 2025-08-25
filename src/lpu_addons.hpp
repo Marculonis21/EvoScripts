@@ -17,7 +17,6 @@ struct LPUHandle {
 	};
 };
 
-
 enum class Instr : uint8_t {
 	None   = 0x00,
 	nop0   = 0x01,

@@ -24,26 +24,28 @@ Manager::Manager() {
 	);
 	/* lpuPopulation.reserve(36); */
 
+	this->evoDex = std::make_unique<EvoDex>();
+
+	this->visualizer =
+		/* std::unique_ptr<VisualizerStrategy>(new CLIVisualizer(memory.get())); */
+		std::unique_ptr<VisualizerStrategy>(new TXTFileVisualizer(memory.get(), evoDex.get(), "memOutput.txt"));
+
+	this->randomizer = std::make_unique<Randomizer>(memory.get());
+
+	observers = LPUObservers{this->memory.get(), this, this->randomizer.get(), evoDex.get() };
+
 	MemorySpace ancestorRecord = this->insert("ancestors/tester.es");
 	if (ancestorRecord.size == 0) {
 		throw std::invalid_argument("first animal insert failed");
 	} else {
 		addLPU(LPUHandle{}, std::move(ancestorRecord));
 	}
-
-	std::cout << std::string(*lpuPopulation.get(LPUHandle{0})) << std::endl;
-	this->visualizer =
-		/* std::unique_ptr<VisualizerStrategy>(new CLIVisualizer(memory.get())); */
-		std::unique_ptr<VisualizerStrategy>(new TXTFileVisualizer(memory.get(), "memOutput.txt"));
-
-	this->randomizer = std::make_unique<Randomizer>(memory.get());
 }
 
-
 void Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
-	lpuPopulation.addLPU(predecessor, memory.get(), this, randomizer.get(), std::move(newMemoryRecord), 0);
+	lpuPopulation.addLPU(predecessor, observers, std::move(newMemoryRecord), 0);
 
-	std::cout << "Added new lpu " << std::endl;
+	/* std::cout << "Added new lpu " << std::endl; */
 }
 
 void Manager::removeLPU(LPUHandle handle) {
@@ -56,7 +58,7 @@ void Manager::removeLPU(LPUHandle handle) {
 			}});
 
 	lpuPopulation.removeLPU(handle);
-	std::cout << "Removed lpu (Handle id: " << handle.id << ")" << std::endl;
+	/* std::cout << "Removed lpu (Handle id: " << handle.id << ")" << std::endl; */
 
 	for (int i = 0; i < records.size(); ++i) {
 		auto main = records[i].second.first;
@@ -101,15 +103,14 @@ void Manager::sim() {
 
 	LPU* lpu;
 	for (uint64_t iter = 0; ; ++iter) {
-		printf("Iteration %lu: \n", iter);
+		printf("Iteration %lu \n", iter);
 		if (iter % 100 == 0) { lpuPopulation.clearGraves(); }
-		if (iter % 10000 == 0) { visualizer->print(lpuPopulation); }
+		if (iter % 100000 == 0) { visualizer->print(lpuPopulation); }
 
 		for (size_t i = 0; i < lpuPopulation.queueSize(); ++i) {
 			lpu = lpuPopulation.getQueue(i);
 			if (!lpu) { continue; }
 
-			std::cout << "Processing ID: " << lpu->getHandle().id << std::endl;
 			for (size_t _ = 0; _ < stepsAllowed; ++_) {
 				randomizer->process();
 

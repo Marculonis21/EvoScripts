@@ -42,9 +42,30 @@ void TXTFileVisualizer::print(const LPUPool &pool) const {
 		}
 	}
 
-
 	uint64_t ridx = 0;
 	std::sort(recordsList.begin(), recordsList.end(), [](const auto &a, const auto &b){ return std::get<0>(a).start <= std::get<0>(b).start; }); // uff
+																																				 
+	file << "---- Evo dex ----" << std::endl;
+	for (auto && [key, bucket] : evoDexPtr->dex) {
+
+		for (auto && item : bucket) {
+			file << "ENTRY:" << std::endl;
+			file << "Handle: " << item.handle.id << " Parent Handle: " << item.parent.id << std::endl;
+			file << "DOB: " << item.dateofbirth << std::endl;
+			file << "Instructions" << std::endl;
+
+			for (int i = 0; i < item.instructions.size(); ++i) {
+				uint8_t instr = item.instructions[i];
+				auto str = LPU::decode_tostring(instr); 
+
+				file << int(i) << " | ";
+				file << static_cast<int>(instr) << "|";
+				file << str.c_str() << std::endl;
+			}
+
+			file << std::endl;
+		}
+	}
 
 	file << "---- Memory print out ----" << std::endl;
 	file << "- full memory size " << std::to_string(memPtr->getMemorySize()) << std::endl;

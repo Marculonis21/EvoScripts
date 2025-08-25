@@ -1,9 +1,7 @@
 #include "memoryCleaner.hpp"
 #include <cstdint>
 #include <limits>
-#include <string>
 #include <vector>
-#include <iostream>
 
 #include "lpu.hpp"
 #include "manager.hpp"
@@ -36,10 +34,5 @@ void ErrorFirstCleanerStrategy::clean(LPUHandle caller) const {
 		}
 	}
 
-	std::cout << "FOUND A PROBLEMATIC ONE TO GET DELETED" << std::endl;
-	std::cout << "ID: " << worstHandle.id << " Errors: " << std::to_string(mostErrors) << std::endl;
-
 	managerPtr->removeLPU(worstHandle);
-
-	/* auto x = std::cin.get(); */
 }

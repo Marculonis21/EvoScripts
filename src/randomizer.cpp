@@ -1,6 +1,4 @@
 #include "randomizer.hpp"
-#include "lpu.hpp"
-#include <iostream>
 
 void Randomizer::process() {
 	// update the random values
@@ -13,17 +11,8 @@ void Randomizer::process() {
 		uint64_t pos = memPos(randomRes.engine);
 		uint8_t bit = bitPos(randomRes.engine);
 
-
 		// flip n-th bit
 		memPtr->memory[pos] ^= ((uint8_t)1 << bit); 
-
-		std::cout << "CRR_MEMORY HIT - At: " << pos << " Bit changed: " << bit << std::endl;
-
-		uint8_t instr = memPtr->fetch(pos).value();
-		auto str = LPU::decode_tostring(instr); 
-		std::cout << "NEW Instr: " << str << std::endl;
-
-		/* auto x = std::cin.get(); */
 	}
 }
 
@@ -33,7 +22,5 @@ uint8_t Randomizer::cp_instr_process(uint8_t original) {
 
 	// else
 	std::uniform_int_distribution<uint8_t> instrDistr(0, 0x1a);
-	std::cout << "CP_INSTR HIT" << std::endl;
-	/* auto x = std::cin.get(); */
 	return instrDistr(randomRes.engine);
 }
