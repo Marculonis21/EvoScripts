@@ -196,3 +196,12 @@ would show me alive (and historical) species. My idea, probably close to the
 original, is to have an exact match for a specific specie and write them into
 the history books if it mates at least once so we remember only the working
 individuals.
+
+#### 2025-08-30 11:43 -- Pokedex done, vis to go
+
+I have been successful with the `pokedex` but now I have quite a lot of data
+that is coming out of it... I am quite happy though because my sim is able to
+do multiple Billions of steps in just a few moments.
+
+Now I want to create a small python app, which would collect runs pokedex data
+and get me a **family tree** of what the genome was doing throughout the sim.
