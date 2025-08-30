@@ -85,6 +85,11 @@ class LPU {
 	struct Metadata {
 		LPUHandle handle;
 		LPUHandle parent;
+		/* LPUHandle DNApre; */
+		/* LPUHandle parentDNApre; */
+
+		std::vector<LPUHandle> DNApre;
+
 		uint64_t dateofbirth;
 		Instructions instructions;
 		uint64_t occurence=0;

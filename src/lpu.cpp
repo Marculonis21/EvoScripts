@@ -3,8 +3,8 @@
 #include "memory.hpp"
 #include "manager.hpp"
 #include "evodex.hpp"
+#include <algorithm>
 #include <cstdint>
-#include <iostream>
 #include <cstdio>
 #include <optional>
 #include <string>
@@ -61,6 +61,10 @@ LPU::Metadata::Metadata(const LPU &lpu) {
 	parent = lpu.parent;
 	dateofbirth = lpu.dateofbirth;
 	instructions = Instructions(lpu);
+
+	if (parent.id == 0) {
+		this->DNApre.push_back(lpu.parent);
+	}
 }
 
 bool LPU::operator==(const LPU &other) const {
@@ -368,6 +372,23 @@ bool LPU::divide(uint64_t address) {
 	memoryRecordOffspring = MemorySpace::EMPTY(); // reset memoryRecordOffspring
 												  
 	evoDex->insert(*this, *offspring, metadata);
+
+	if (*this == *offspring) { // didn't mutate
+		offspring->metadata.DNApre = std::vector(this->metadata.DNApre);
+		//offspring->metadata.parentDNApre = this->metadata.parentDNApre ;
+	}
+	else {
+		offspring->metadata.DNApre.push_back(offspring->handle);
+		/* for (size_t i = 0; i < std::min(this->metadata.DNApre.size(), (size_t)10000); ++i) { */
+		for (size_t i = 0; i < this->metadata.DNApre.size(); ++i) {
+			offspring->metadata.DNApre.push_back(this->metadata.DNApre[i]);
+			if (evoDex->exists(this->metadata.DNApre[i])) {
+				break;
+			}
+			//offspring->metadata.DNApre.push_back(this->metadata.DNApre[i]);
+		}
+		//offspring->metadata.parentDNApre = this->metadata.DNApre; // make it make sense
+	}
 
 	return true;
 }

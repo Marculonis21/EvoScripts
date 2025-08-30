@@ -105,7 +105,7 @@ void Manager::sim() {
 	for (uint64_t iter = 0; ; ++iter) {
 		printf("Iteration %lu \n", iter);
 		if (iter % 100 == 0) { lpuPopulation.clearGraves(); }
-		if (iter % 10000 == 0) { 
+		if (iter % 2000 == 0) { 
 			visualizer->print(lpuPopulation); 
 		}
 

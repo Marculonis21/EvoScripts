@@ -23,3 +23,13 @@ void EvoDex::insert(const LPU &parent, const LPU &offspring, const LPU::Metadata
 
 	dex[parent].push_back(metadata);
 }
+
+bool EvoDex::exists(const LPUHandle &handle) {
+	for (auto && pair : dex) {
+		if (handle == pair.first.getHandle()) {
+			return true;
+		}
+	}
+
+	return false;
+}
