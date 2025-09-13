@@ -240,9 +240,8 @@ MatchResult BaseMemoryType::matchTemplateForward(uint64_t address) const {
  */
 MatchResult BaseMemoryType::matchTemplate(uint64_t address) const {
 	TemplateInfo pattern = loadInTemplate(address);
-	/* std::cout << "matchTemplate - pattern: " << std::to_string(pattern.pattern) */
-	/* 		  << std::endl; */
-	if (pattern.patternSize == 0)
+
+	if (pattern.patternSize < 3)
 		return MatchResult{false, 0};
 
 	auto hVb = findMatchingTemplateBackward(address, pattern);

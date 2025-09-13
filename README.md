@@ -205,3 +205,33 @@ do multiple Billions of steps in just a few moments.
 
 Now I want to create a small python app, which would collect runs pokedex data
 and get me a **family tree** of what the genome was doing throughout the sim.
+
+#### 2025-09-13 21:08 -- HEY I found you!
+ 
+First runs and immediately first signs of evolution. Evolving a head scratcher.
+Using my pokedex I was able to find out, that there are some (actually many)
+creatures, thriving on just a few instructions, sometimes as little as 2-4.
+This doesn't make sense as my pokedex should be storing only the ones that are
+able to replicate themselves successfully.
+
+```
+-> Parent
+divide
+ifnz
+
+-> Offspring
+ifz
+nop0
+nop0
+```
+
+Well first evolutions found a way to break my small intricate system. See
+ifnz/ifz and such instructions were done with a good thing in mind, but done
+poorly, just hardcoding an `IP += 1` move whenever necessary.
+
+Well at some point memory fills up and creatures are quite squished together.
+So those little buggers were jumping over the end program boundary and finding
+a completely fine individual just next door and basically using their whole
+code just to somehow replicate themselves. **Cool, but not cool**!
+
+*Sigh - I am afraid there might be many more of these coming...*

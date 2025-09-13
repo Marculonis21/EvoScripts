@@ -94,7 +94,7 @@ layout = g.layout("tree")
 
 # Plot the tree using the layout
 fig, ax = plt.subplots()
-ig.plot(g, layout=layout, target=ax, vertex_size=20, vertex_label=g.vs["label"], vertex_color=["green" if v["label"] == 0 else "red" for v in g.vs])
+ig.plot(g, layout=layout, target=ax, margin=10, vertex_size=20, vertex_label=g.vs["label"], edge_color=("lightgray", 0.1), edge_width=1, vertex_color=["green" if v["label"] == 0 else "red" for v in g.vs])
 
 # Display the plot
 plt.tight_layout()

@@ -1,4 +1,6 @@
 #include "evodex.hpp"
+#include <iostream>
+#include <ostream>
 
 void EvoDex::insert(const LPU &parent, const LPU &offspring, const LPU::Metadata &metadata) {
 	// Instruction comparison

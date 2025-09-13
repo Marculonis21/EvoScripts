@@ -85,8 +85,6 @@ class LPU {
 	struct Metadata {
 		LPUHandle handle;
 		LPUHandle parent;
-		/* LPUHandle DNApre; */
-		/* LPUHandle parentDNApre; */
 
 		std::vector<LPUHandle> DNApre;
 

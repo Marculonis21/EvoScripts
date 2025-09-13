@@ -83,14 +83,14 @@ LPU::operator std::string() const {
 	return output;
 }
 
-void LPU::moveIP(uint8_t lastInstr) {
+void LPU::moveIP(uint8_t fetchedInstr) {
 	// necessary!
 	ip += 1;
 
 	// if at the end of own memory space - roll back to the start 
 	// if fetched a None instruction - roll back
 	if (ip == memoryRecord.start + memoryRecord.size || 
-		lastInstr == (uint8_t)Instr::None) {
+		fetchedInstr == (uint8_t)Instr::None) {
 
 		// program can restart on it's own or get punished
 		errors += 1;
@@ -162,6 +162,8 @@ bool LPU::nop1(uint64_t address) { return false; }
 
 /*
  * jmp loads in the following template and jumps to a matching template
+ *
+ * Condition: templates should be at least 3 long  
  */
 bool LPU::jmp(uint64_t address) {
 	MatchResult result = memPtr->matchTemplate(address);
@@ -175,10 +177,15 @@ bool LPU::jmp(uint64_t address) {
 /*
  * conditional on regC == 0 performs next instr
  * otherwise IP is moved and next is skipped
+ *
+ * TAKE CARE: jumping over the boundary check - fixed
  */
 bool LPU::ifz(uint64_t address) {
 	if (regC != 0) {
-		ip += 1;
+		/* ip += 1; */
+
+		// does the move + should checks for boundaries
+		moveIP((uint8_t)Instr::ifz);
 	}
 
 	return true;
@@ -190,7 +197,9 @@ bool LPU::ifz(uint64_t address) {
  */
 bool LPU::ifnz(uint64_t address) {
 	if (regC == 0) {
-		ip += 1;
+		/* ip += 1; */
+
+		moveIP((uint8_t)Instr::ifnz);
 	}
 
 	return true;
@@ -373,21 +382,36 @@ bool LPU::divide(uint64_t address) {
 												  
 	evoDex->insert(*this, *offspring, metadata);
 
+	if (metadata.instructions.vec.size() <= 10) {
+		std::cout << "Parent size4 problem occurred" << std::endl;
+		std::cout << "Parent MR: " << getMemRecords().first.start << "," << getMemRecords().first.size << std::endl;
+		std::cout << "Offspring MR: " << offspring->getMemRecords().first.start << "," << offspring->getMemRecords().first.size << std::endl;
+
+		std::cout << "Parent" << std::endl;
+		for (int i = 0; i < metadata.instructions.vec.size(); ++i) {
+			std::cout << this->decode_tostring(metadata.instructions.vec[i]) << std::endl;
+		}
+
+		std::cout << "\nOffspring" << std::endl;
+		for (int i = 0; i < offspring->metadata.instructions.vec.size(); ++i) {
+			std::cout << this->decode_tostring(offspring->metadata.instructions.vec[i]) << std::endl;
+		}
+
+		auto x = std::cin.get();
+	}
+
 	if (*this == *offspring) { // didn't mutate
 		offspring->metadata.DNApre = std::vector(this->metadata.DNApre);
-		//offspring->metadata.parentDNApre = this->metadata.parentDNApre ;
 	}
 	else {
 		offspring->metadata.DNApre.push_back(offspring->handle);
-		/* for (size_t i = 0; i < std::min(this->metadata.DNApre.size(), (size_t)10000); ++i) { */
+
 		for (size_t i = 0; i < this->metadata.DNApre.size(); ++i) {
 			offspring->metadata.DNApre.push_back(this->metadata.DNApre[i]);
 			if (evoDex->exists(this->metadata.DNApre[i])) {
 				break;
 			}
-			//offspring->metadata.DNApre.push_back(this->metadata.DNApre[i]);
 		}
-		//offspring->metadata.parentDNApre = this->metadata.DNApre; // make it make sense
 	}
 
 	return true;
