@@ -88,11 +88,18 @@ TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 				res |= 1 << offset; // nop1
 				break;
 			default:
-				return TemplateInfo{res, offset};
+				return TemplateInfo{address, res, offset};
 		}
 
 		offset++;
 	}
+}
+
+bool BaseMemoryType::validateTemplate(const TemplateInfo &pattern, const MemorySpace &lpuSpace) const {
+	/* std::cout << "VALIDATION " << std::to_string(pattern.pattern >= 3) << " " << (!lpuSpace.contains(pattern.start) || lpuSpace.contains(pattern.start+pattern.patternSize)) << std::endl; */
+	return pattern.patternSize >= 3 && (!lpuSpace.contains(pattern.start) || lpuSpace.contains(pattern.start+pattern.patternSize));
+	// contains start => contains start+size
+	// !contains start || contains start+size LOGIC
 }
 
 std::vector<MatchSearchHit>
@@ -197,65 +204,56 @@ BaseMemoryType::findMatchingTemplateBackward(uint64_t address,
 	return hitVector;
 }
 
-MatchResult BaseMemoryType::matchTemplateBackward(uint64_t address) const {
+MatchResult BaseMemoryType::matchTemplateBackward(uint64_t address, const MemorySpace &lpuSpace) const {
+	return matchTemplateWorker(TemplateMatchMode::BACKWARD, address, lpuSpace);
+}
+
+MatchResult BaseMemoryType::matchTemplateForward(uint64_t address, const MemorySpace &lpuSpace) const {
+	return matchTemplateWorker(TemplateMatchMode::FORWARD, address, lpuSpace);
+}
+
+MatchResult BaseMemoryType::matchTemplate(uint64_t address, const MemorySpace &lpuSpace) const {
+	return matchTemplateWorker(TemplateMatchMode::BIDIRECTIONAL, address, lpuSpace);
+}
+
+MatchResult BaseMemoryType::matchTemplateWorker(TemplateMatchMode mode, uint64_t address, const MemorySpace &lpuSpace) const {
 	TemplateInfo pattern = loadInTemplate(address);
-	/* std::cout << "backward - pattern: " << std::to_string(pattern.pattern) */
-	/* 		  << std::endl; */
-	if (pattern.patternSize == 0)
-		return MatchResult{false, 0};
 
-	std::vector<MatchSearchHit> hitVector =
-		findMatchingTemplateBackward(address, pattern);
+	if (!validateTemplate(pattern, lpuSpace)) {
+		/* std::cout << "VALIDATION FAIL" << std::endl; */
+		return MatchResult::FAIL();
+	}
 
-	/* std::cout << "MATCH BACKWARD BACK" << std::endl; */
+	std::vector<MatchSearchHit> hitVector;
+
+	switch (mode) {
+		case TemplateMatchMode::FORWARD:
+			hitVector = findMatchingTemplateForward(address, pattern);
+			break;
+		case TemplateMatchMode::BACKWARD:
+			hitVector = findMatchingTemplateBackward(address, pattern);
+			break;
+		case TemplateMatchMode::BIDIRECTIONAL:
+			auto hVb = findMatchingTemplateBackward(address, pattern);
+			auto hVf = findMatchingTemplateForward(address, pattern);
+			hitVector.reserve(hVb.size() + hVf.size());
+			hitVector = hVb;
+			hitVector.insert(hitVector.end(), hVf.begin(), hVf.end());
+			break;
+	}
+
 	if (hitVector.size() == 0) {
-		return MatchResult{false, 0};
+		/* std::cout << "hitvector size" << std::endl; */
+		return MatchResult::FAIL();
 	}
 
 	// TODO: CHECK THIS
 	// TODO: select with probability based on distance
-	std::random_shuffle(hitVector.begin(), hitVector.end());
-	return MatchResult{true, hitVector[0].address};
+	/* std::random_shuffle(hitVector.begin(), hitVector.end()); */
+	/* std::cout << "SUCCESS" << std::endl; */
+	return MatchResult::SUCCESS(hitVector[0].address);
 }
 
-MatchResult BaseMemoryType::matchTemplateForward(uint64_t address) const {
-	TemplateInfo pattern = loadInTemplate(address);
-	/* std::cout << "forward - pattern: " << std::to_string(pattern.pattern) */
-	/* 		  << std::endl; */
-	if (pattern.patternSize == 0)
-		return MatchResult{false, 0};
-
-	std::vector<MatchSearchHit> hitVector =
-		findMatchingTemplateForward(address, pattern);
-	if (hitVector.size() == 0)
-		return MatchResult{false, 0};
-
-	// TODO: CHECK THIS
-	std::random_shuffle(hitVector.begin(), hitVector.end());
-	return MatchResult{true, hitVector[0].address};
-}
-
-/*
- * Bidirectional template match
- */
-MatchResult BaseMemoryType::matchTemplate(uint64_t address) const {
-	TemplateInfo pattern = loadInTemplate(address);
-
-	if (pattern.patternSize < 3)
-		return MatchResult{false, 0};
-
-	auto hVb = findMatchingTemplateBackward(address, pattern);
-	auto hVf = findMatchingTemplateForward(address, pattern);
-	std::vector<MatchSearchHit> hitVector(hVb.size() + hVf.size());
-
-	hitVector = hVb;
-	hitVector.insert(hitVector.end(), hVf.begin(), hVf.end());
-	if (hitVector.size() == 0)
-		return MatchResult{false, 0};
-
-	std::random_shuffle(hitVector.begin(), hitVector.end());
-	return MatchResult{true, hitVector[0].address};
-}
 
 bool BaseMemoryType::write(const MemorySpace &lpuSpace, uint64_t address,
 						   uint8_t payload) {

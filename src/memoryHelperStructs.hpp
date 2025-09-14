@@ -5,6 +5,7 @@
 #include <vector>
 
 struct TemplateInfo {
+	uint64_t start = 0;
 	uint64_t pattern = 0;
 	uint8_t patternSize = 0;
 };
@@ -12,6 +13,9 @@ struct TemplateInfo {
 struct MatchResult {
 	bool success = false;
 	uint64_t address = 0;
+
+	static MatchResult FAIL() { return MatchResult{false,0}; }
+	static MatchResult SUCCESS(uint64_t address) { return MatchResult{true,address}; }
 };
 
 struct MatchSearchHit {

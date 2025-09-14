@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <stack>
@@ -109,6 +110,7 @@ bool LPU::step() {
 	}
 
 	/* std::cout << "fetch: " << ip << " - "<< LPU::decode_tostring(fetchedInstr.value()) << std::endl; */
+	/* auto x = std::cin.get(); */
 	bool result = decode(fetchedInstr.value(), ip);
 
 	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
@@ -164,9 +166,10 @@ bool LPU::nop1(uint64_t address) { return false; }
  * jmp loads in the following template and jumps to a matching template
  *
  * Condition: templates should be at least 3 long  
+ * Warn: template loading over the boundary - fix
  */
 bool LPU::jmp(uint64_t address) {
-	MatchResult result = memPtr->matchTemplate(address);
+	MatchResult result = memPtr->matchTemplate(address, memoryRecord);
     if (!result.success) return false;
 
 	// jump to address-1 so the next step runs on result.address
@@ -210,7 +213,7 @@ bool LPU::ifnz(uint64_t address) {
  * onto a stack to be used later
  */
 bool LPU::fndf(uint64_t address) {
-	MatchResult result = memPtr->matchTemplateForward(address);
+	MatchResult result = memPtr->matchTemplateForward(address, memoryRecord);
 	if (!result.success) return false;
 
 	stack.push(result.address);
@@ -218,7 +221,7 @@ bool LPU::fndf(uint64_t address) {
 }
 
 bool LPU::fndb(uint64_t address) {
-	MatchResult result = memPtr->matchTemplateBackward(address);
+	MatchResult result = memPtr->matchTemplateBackward(address, memoryRecord);
 	if (!result.success) return false;
 
 	stack.push(result.address);
@@ -232,7 +235,7 @@ bool LPU::fndb(uint64_t address) {
  * the stack, then jumps IP to the function
  */
 bool LPU::call(uint64_t address) {
-	MatchResult result = memPtr->matchTemplate(address);
+	MatchResult result = memPtr->matchTemplate(address, memoryRecord);
 	if (!result.success) return false;
 
 	// push ip+1 so ret (top-1) can possibly get back to original address and

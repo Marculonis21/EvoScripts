@@ -9,6 +9,14 @@
 #include <optional>
 #include <vector>
 
+namespace {
+	enum class TemplateMatchMode {
+		FORWARD,
+		BACKWARD,
+		BIDIRECTIONAL
+	};
+};
+
 class Randomizer;
 
 class BaseMemoryType {
@@ -25,9 +33,9 @@ class BaseMemoryType {
 		virtual bool write(const MemorySpace &lpuSpace, uint64_t addressTo, uint8_t payload);
 		virtual bool copy(const MemorySpace &lpuSpace, const MemorySpace &lpuSpaceOffspring, uint64_t addressFrom, uint64_t addressTo, Randomizer *randomizer);
 
-		virtual MatchResult matchTemplate(uint64_t address) const;
-		virtual MatchResult matchTemplateForward(uint64_t address) const;
-		virtual MatchResult matchTemplateBackward(uint64_t address) const;
+		virtual MatchResult matchTemplate(uint64_t address, const MemorySpace &lpuSpace) const;
+		virtual MatchResult matchTemplateForward(uint64_t address, const MemorySpace &lpuSpace) const;
+		virtual MatchResult matchTemplateBackward(uint64_t address, const MemorySpace &lpuSpace) const;
 
 	protected:
 		std::vector<uint8_t> memory;
@@ -39,6 +47,9 @@ class BaseMemoryType {
 		const int searchSize = 50;
 
 		virtual TemplateInfo loadInTemplate(uint64_t address) const;
+		virtual bool validateTemplate(const TemplateInfo &pattern, const MemorySpace &lpuSpace) const;
+
+		virtual MatchResult matchTemplateWorker(TemplateMatchMode mode, uint64_t address, const MemorySpace &lpuSpace) const;
 		virtual std::vector<MatchSearchHit> findMatchingTemplateForward(uint64_t address, TemplateInfo pattern) const;
 		virtual std::vector<MatchSearchHit> findMatchingTemplateBackward(uint64_t address, TemplateInfo pattern) const;
 
