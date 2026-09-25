@@ -10,9 +10,19 @@
 #include <memory>
 #include <vector>
 
+// Guard these defaults with your life...
+struct SimConfig {
+	uint64_t memorySize = 10000;
+	uint64_t maxIterations = 0; 
+	uint64_t stepsPerOrganism = 100;
+	uint64_t snapshotInterval = 1000;
+	std::string ancestorFile = "ancestors/tester.es";
+	std::string outputFile = "evodex.json";
+};
+
 class Manager {
   public:
-	Manager();
+	Manager(SimConfig config);
 
 	LPU* addLPU(LPUHandle predecessor, MemorySpace &&memoryRecord);
 	void removeLPU(LPUHandle handle);
@@ -37,4 +47,5 @@ class Manager {
 
 	uint64_t stepCounter;
 	uint64_t lpuIDCounter;
+	SimConfig config;
 };

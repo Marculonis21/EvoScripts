@@ -30,7 +30,7 @@ void TXTFileVisualizer::print(const LPUPool &pool) const {
 	file.open(path);
 	assert(file.is_open() && "Problem opening the file for printing");
 
-	auto records = pool.select<std::pair<const MemorySpace, const MemorySpace>>([](LPU* lpu)->std::pair<const MemorySpace, const MemorySpace>{
+	auto records = pool.select<std::pair<const MemorySpace, const MemorySpace>>([](LPU* lpu){
 				return lpu->getMemRecords();
 			});
 
@@ -43,7 +43,7 @@ void TXTFileVisualizer::print(const LPUPool &pool) const {
 	}
 
 	uint64_t ridx = 0;
-	std::sort(recordsList.begin(), recordsList.end(), [](const auto &a, const auto &b){ return std::get<0>(a).start <= std::get<0>(b).start; }); // uff
+	std::sort(recordsList.begin(), recordsList.end(), [](const auto &a, const auto &b){ return std::get<0>(a).start < std::get<0>(b).start; }); // uff
 																																				 
 	file << "---- Evo dex ----" << std::endl;
 	for (auto && [key, bucket] : evoDexPtr->dex) {
@@ -86,26 +86,78 @@ void TXTFileVisualizer::print(const LPUPool &pool) const {
 		file << static_cast<int>(instr) << "|";
 		file << str.c_str();
 
-		MemorySpace ms = std::get<0>(recordsList[ridx]);
-		LPUHandle handle = std::get<1>(recordsList[ridx]);
-		bool active = std::get<2>(recordsList[ridx]);
+		if (ridx < recordsList.size()) {
+			MemorySpace ms = std::get<0>(recordsList[ridx]);
+			LPUHandle handle = std::get<1>(recordsList[ridx]);
+			bool active = std::get<2>(recordsList[ridx]);
 
-		if (ms.start == i) {
-			file << " -> MS START ";
-			file << "Handle: " << std::to_string(handle.id);
-			file << " Active " << std::to_string(active);
-		}
-		if (ms.start + ms.size-1 == i) {
-			file << " -> ~ MS END ~";
-			file << "Handle: " << std::to_string(handle.id);
-			file << " Active " << std::to_string(active);
-			ridx += 1;
+			if (ms.start == i) {
+				file << " -> MS START ";
+				file << "Handle: " << std::to_string(handle.id);
+				file << " Active " << std::to_string(active);
+			}
+			if (ms.start + ms.size-1 == i) {
+				file << " -> ~ MS END ~";
+				file << "Handle: " << std::to_string(handle.id);
+				file << " Active " << std::to_string(active);
+				ridx += 1;
+			}
 		}
 
 		file << std::endl;
-
-
 	}
 
+	file.close();
+}
+
+void JSONVisualizer::print(const LPUPool &pool) const {
+	std::ofstream file(path);
+	if (!file.is_open()) return;
+
+	file << "{\n";
+
+	// EvoDex Section
+	file << "  \"evodex\": [\n";
+	bool firstEntry = true;
+	for (const auto &[key, bucket] : evoDexPtr->dex) {
+		for (const auto &item : bucket) {
+			if (!firstEntry) file << ",\n";
+			firstEntry = false;
+
+			file << "    {\n";
+			file << "      \"handle\": " << item.handle.id << ",\n";
+			file << "      \"parent\": " << item.parent.id << ",\n";
+			file << "      \"occurence\": " << item.occurence << ",\n";
+			file << "      \"dob\": " << item.dateofbirth << ",\n";
+			file << "      \"dna_pre\": [";
+			for (size_t i = 0; i < item.DNApre.size(); ++i) {
+				file << item.DNApre[i].id << (i + 1 < item.DNApre.size() ? ", " : "");
+			}
+			file << "],\n";
+			file << "      \"genome_length\": " << item.instructions.vec.size() << ",\n";
+			file << "      \"instructions\": [\n";
+			for (size_t i = 0; i < item.instructions.vec.size(); ++i) {
+				uint8_t opcode = item.instructions.vec[i];
+				std::string name = LPU::decode_tostring(opcode);
+				file << "        {\"offset\": " << i << ", \"opcode\": " << static_cast<int>(opcode) << ", \"name\": \"" << name << "\"}";
+				if (i + 1 < item.instructions.vec.size()) file << ",";
+				file << "\n";
+			}
+			file << "      ]\n";
+			file << "    }";
+		}
+	}
+	file << "\n  ],\n";
+
+	// Full Virtual RAM Memory Dump
+	file << "  \"memory_size\": " << memPtr->getMemorySize() << ",\n";
+	file << "  \"memory\": [";
+	for (uint64_t i = 0; i < memPtr->getMemorySize(); ++i) {
+		uint8_t val = memPtr->fetch(i).value_or(0);
+		file << static_cast<int>(val) << (i + 1 < memPtr->getMemorySize() ? ", " : "");
+	}
+	file << "]\n";
+
+	file << "}\n";
 	file.close();
 }

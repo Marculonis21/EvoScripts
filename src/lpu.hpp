@@ -39,32 +39,6 @@ class LPU {
 		return "UNKNOWN INSTRUCTION";
 	}
 
-	uint64_t currentIP() const { return ip; }
-	uint64_t errorCount() const { return errors; }
-	LPUHandle getHandle() const { return handle; }
-	std::pair<const MemorySpace, const MemorySpace> getMemRecords() const { return std::make_pair(memoryRecord, memoryRecordOffspring); }
-
-	struct Hash {
-		static uint64_t build(const LPU &lpu);
-
-		uint64_t operator()(const LPU &lpu) const noexcept {
-			return lpu.memHash;
-		}
-
-		static constexpr uint64_t p = 31;
-		static constexpr uint64_t m = 1e9 + 9;
-
-		// lambda constexpr
-		static constexpr uint64_t N = 10000;
-		static constexpr std::array<uint64_t, N> ppow = [](){
-			std::array<uint64_t, N> ppow{1};
-			for (uint64_t i = 1; i < N; ++i) {
-				ppow[i] = (ppow[i - 1] * p) % m;
-			}
-			return ppow;
-		}();
-	};
-
 	struct Instructions {
 		std::vector<std::uint8_t> vec;
 
@@ -72,14 +46,23 @@ class LPU {
 		Instructions(const LPU &lpu);
 
 		bool operator==(const Instructions &other) const {
-			if (vec.size() != other.vec.size()) { return false; }
-
-			for (int i = 0; i < vec.size(); ++i) {
-				if (vec[i] != other.vec[i]) { return false; }
-			}
-
-			return true;
+			return vec == other.vec;
 		}
+
+		struct Hash {
+			static constexpr uint64_t p = 31;
+			static constexpr uint64_t m = 1e9 + 9;
+
+			uint64_t operator()(const Instructions &instr) const noexcept {
+                uint64_t hash = 0;
+                uint64_t p_pow = 1;
+                for (uint8_t i : instr.vec) {
+                    hash = (hash + i * p_pow) % m;
+                    p_pow = (p_pow * p) % m;
+                }
+                return hash;
+            }
+		};
 	};
 
 	struct Metadata {
@@ -99,6 +82,12 @@ class LPU {
 			return this->instructions == other.instructions;
 		}
 	};
+	
+	uint64_t currentIP() const { return ip; }
+	uint64_t errorCount() const { return errors; }
+	LPUHandle getHandle() const { return handle; }
+	std::pair<const MemorySpace, const MemorySpace> getMemRecords() const { return std::make_pair(memoryRecord, memoryRecordOffspring); }
+	Instructions getInstructions() const { return metadata.instructions; }
 
   private:
 	LPUHandle handle;
@@ -114,6 +103,7 @@ class LPU {
 	uint64_t errors;
 
 	// just observers so I won't care about dangling pointers
+	// LPUObservers env;
 	BaseMemoryType *memPtr;
 	Manager *managerPtr;
 	Randomizer *randomizerPtr;
@@ -121,8 +111,6 @@ class LPU {
 
 	MemorySpace memoryRecord;
 	MemorySpace memoryRecordOffspring;
-
-	uint64_t memHash;
 
 	Metadata metadata;
 

@@ -9,14 +9,14 @@ class MemoryCleanerStrategy {
 	MemoryCleanerStrategy() = default;
 	virtual ~MemoryCleanerStrategy() = default;
 
-	virtual void clean(LPUHandle caller) const = 0;
+	virtual bool clean(LPUHandle caller) const = 0;
 
 };
 
 class ErrorFirstCleanerStrategy : public MemoryCleanerStrategy{
   public:
 	ErrorFirstCleanerStrategy(Manager *managerPtr);
-	virtual void clean(LPUHandle caller) const override;
+	virtual bool clean(LPUHandle caller) const override;
 
   protected:
 	Manager* managerPtr;

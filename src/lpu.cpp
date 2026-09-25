@@ -34,20 +34,7 @@ LPU::LPU(LPUHandle handle, LPUHandle parent, const LPUObservers &observers, Memo
 	regC = uint64_t();
 	stack = std::stack<uint64_t>();
 
-	memHash = LPU::Hash::build(*this);
 	metadata = Metadata(*this);
-}
-
-uint64_t LPU::Hash::build(const LPU &lpu) {
-	uint64_t hash = 0;
-	uint8_t instr;
-
-	for (uint64_t i = lpu.memoryRecord.start, x = 0; i < lpu.memoryRecord.start+lpu.memoryRecord.size; ++i) {
-		instr = lpu.memPtr->fetch(i).value();
-		hash = (hash + instr * LPU::Hash::ppow[x++]) % LPU::Hash::m;
-	}
-
-	return hash;
 }
 
 LPU::Instructions::Instructions(const LPU &lpu) {
@@ -109,12 +96,13 @@ bool LPU::step() {
 		return false;
 	}
 
+	uint8_t instr = *fetchedInstr;
 	/* std::cout << "fetch: " << ip << " - "<< LPU::decode_tostring(fetchedInstr.value()) << std::endl; */
 	/* auto x = std::cin.get(); */
-	bool result = decode(fetchedInstr.value(), ip);
+	bool result = decode(instr, ip);
 
 	// please for the love of GOD do not forget to add 1 to instruction pointer at the end...
-	moveIP(fetchedInstr.value());
+	moveIP(instr);
 
 	// punish failed instructions
 	if (!result) {
@@ -385,28 +373,28 @@ bool LPU::divide(uint64_t address) {
 												  
 	evoDex->insert(*this, *offspring, metadata);
 
-	if (metadata.instructions.vec.size() <= 10) {
-		std::cout << "Parent size4 problem occurred" << std::endl;
-		std::cout << "Parent MR: " << getMemRecords().first.start << "," << getMemRecords().first.size << std::endl;
-		std::cout << "Offspring MR: " << offspring->getMemRecords().first.start << "," << offspring->getMemRecords().first.size << std::endl;
+	// if (metadata.instructions.vec.size() <= 10) {
+	// 	std::cout << "Parent size4 problem occurred" << std::endl;
+	// 	std::cout << "Parent MR: " << getMemRecords().first.start << "," << getMemRecords().first.size << std::endl;
+	// 	std::cout << "Offspring MR: " << offspring->getMemRecords().first.start << "," << offspring->getMemRecords().first.size << std::endl;
 
-		std::cout << "Parent" << std::endl;
-		for (int i = 0; i < metadata.instructions.vec.size(); ++i) {
-			std::cout << this->decode_tostring(metadata.instructions.vec[i]) << std::endl;
-		}
+	// 	std::cout << "Parent" << std::endl;
+	// 	for (int i = 0; i < metadata.instructions.vec.size(); ++i) {
+	// 		std::cout << this->decode_tostring(metadata.instructions.vec[i]) << std::endl;
+	// 	}
 
-		std::cout << "\nOffspring" << std::endl;
-		for (int i = 0; i < offspring->metadata.instructions.vec.size(); ++i) {
-			std::cout << this->decode_tostring(offspring->metadata.instructions.vec[i]) << std::endl;
-		}
+	// 	std::cout << "\nOffspring" << std::endl;
+	// 	for (int i = 0; i < offspring->metadata.instructions.vec.size(); ++i) {
+	// 		std::cout << this->decode_tostring(offspring->metadata.instructions.vec[i]) << std::endl;
+	// 	}
 
-		auto x = std::cin.get();
-	}
+	// 	auto x = std::cin.get();
+	// }
 
-	if (*this == *offspring) { // didn't mutate
+	if (*this == *offspring) { // didn't mutate -> inherit lineage
 		offspring->metadata.DNApre = std::vector(this->metadata.DNApre);
 	}
-	else {
+	else { // did mutate -> start new family
 		offspring->metadata.DNApre.push_back(offspring->handle);
 
 		for (size_t i = 0; i < this->metadata.DNApre.size(); ++i) {

@@ -37,17 +37,7 @@ LPU* LPUPool::get(LPUHandle handle) const {
  * Remove already dead handles from the queue
  */
 void LPUPool::clearGraves() {
-	std::vector<LPUHandle> dead;
-	for (size_t i = 0; i < handleQueue.size(); ++i) {
-		if (!get(handleQueue[i])) {
-			dead.push_back(handleQueue[i]);
-		}
-	}
-
-	handleQueue.erase(std::remove_if(handleQueue.begin(), handleQueue.end(), 
-							  [dead](LPUHandle x){
-								  return std::find(dead.begin(), dead.end(), x) != dead.end();
-							  }), handleQueue.end());
+	auto erased = std::erase_if(handleQueue, [this](LPUHandle h) { return !get(h); });
 
 	/* std::cout << "HandleQueue clear procedure: " << dead.size() << " elements cleared" << std::endl; */
 }
@@ -58,4 +48,8 @@ LPU* LPUPool::getQueue(size_t i) const {
 
 size_t LPUPool::queueSize() const {
 	return handleQueue.size();
+}
+
+size_t LPUPool::aliveSize() const {
+	return lpuPool.count();
 }

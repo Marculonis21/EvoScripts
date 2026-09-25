@@ -10,13 +10,14 @@ ErrorFirstCleanerStrategy::ErrorFirstCleanerStrategy(Manager *managerPtr) {
 	this->managerPtr = managerPtr;
 }
 
-void ErrorFirstCleanerStrategy::clean(LPUHandle caller) const {
+bool ErrorFirstCleanerStrategy::clean(LPUHandle caller) const {
 	auto popErrors = managerPtr->selectLPUs<uint64_t>(
 			[](LPU* lpu) -> uint64_t{
 				return lpu->errorCount();
 			});
 
-	assert(popErrors.size() > 1 && "We need at least something to clean here!");
+	// assert(popErrors.size() > 1 && "We need at least something to clean here!");
+	if(popErrors.size() <= 1) { return false; }
 
 	uint64_t mostErrors = std::numeric_limits<uint64_t>::min();
 	LPUHandle worstHandle;
@@ -35,4 +36,5 @@ void ErrorFirstCleanerStrategy::clean(LPUHandle caller) const {
 	}
 
 	managerPtr->removeLPU(worstHandle);
+	return true;
 }

@@ -13,12 +13,13 @@
 #include <sys/types.h>
 #include <vector>
 
-Manager::Manager() {
+Manager::Manager(SimConfig simConfig) {
 	this->stepCounter = 0;
 	this->lpuIDCounter = 0;
+	this->config = simConfig;
 
 	memory = std::make_unique<BaseMemoryType>(
-		10000, 
+		config.memorySize, 
 		std::unique_ptr<AllocStrategy>(new AllocFirstFit()),
 		std::unique_ptr<MemoryCleanerStrategy>(new ErrorFirstCleanerStrategy(this))
 	);
@@ -26,15 +27,14 @@ Manager::Manager() {
 
 	this->evoDex = std::make_unique<EvoDex>();
 
-	this->visualizer =
-		/* std::unique_ptr<VisualizerStrategy>(new CLIVisualizer(memory.get())); */
-		std::unique_ptr<VisualizerStrategy>(new TXTFileVisualizer(memory.get(), evoDex.get(), "memOutput.txt"));
+	// this->visualizer = std::unique_ptr<VisualizerStrategy>(new TXTFileVisualizer(memory.get(), evoDex.get(), "memOutput.txt"));
+	this->visualizer = std::unique_ptr<VisualizerStrategy>(new JSONVisualizer(memory.get(), evoDex.get(), config.outputFile));
 
 	this->randomizer = std::make_unique<Randomizer>(memory.get());
 
 	observers = LPUObservers{this->memory.get(), this, this->randomizer.get(), evoDex.get() };
 
-	MemorySpace ancestorRecord = this->insert("ancestors/tester.es");
+	MemorySpace ancestorRecord = this->insert(config.ancestorFile);
 	if (ancestorRecord.size == 0) {
 		throw std::invalid_argument("first animal insert failed");
 	} else {
@@ -49,27 +49,21 @@ LPU* Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
 }
 
 void Manager::removeLPU(LPUHandle handle) {
-	auto records = lpuPopulation.select<std::pair<MemorySpace, MemorySpace>>([handle](LPU* lpu)->std::pair<MemorySpace,MemorySpace>{
-			if (lpu->getHandle() == handle) {
-				return lpu->getMemRecords();
-			}
-			else {
-				return std::make_pair(MemorySpace::EMPTY(), MemorySpace::EMPTY());
-			}});
+	LPU* lpu = lpuPopulation.get(handle);
+	if (!lpu) {
+		return; // Handle already gone or invalid
+	}
+
+	auto [rec_main, rec_off] = lpuPopulation.get(handle)->getMemRecords();
 
 	lpuPopulation.removeLPU(handle);
 	/* std::cout << "Removed lpu (Handle id: " << handle.id << ")" << std::endl; */
 
-	for (int i = 0; i < records.size(); ++i) {
-		auto main = records[i].second.first;
-		auto off = records[i].second.second;
+	assert(!rec_main.isEmpty() && "We don't know what we are removing?");
 
-		if (main.isEmpty()) { continue; }
-
-		memory->allocatedSpaces.erase(main);
-		if (!off.isEmpty()) {
-			memory->allocatedSpaces.erase(off);
-		}
+	memory->allocatedSpaces.erase(rec_main);
+	if (!rec_off.isEmpty()) {
+		memory->allocatedSpaces.erase(rec_off);
 	}
 }
 
@@ -99,26 +93,26 @@ MemorySpace Manager::insert(const std::string &filename) {
 }
 
 void Manager::sim() {
-	const int stepsAllowed = 100;
-
 	LPU* lpu;
-	for (uint64_t iter = 0; ; ++iter) {
-		printf("Iteration %lu \n", iter);
+	for (uint64_t iter = 0; 
+		 config.maxIterations == 0 || iter < config.maxIterations; 
+		 ++iter) {
+
+		printf("Iteration %lu | Population: %zu\n", iter, lpuPopulation.aliveSize());
 		if (iter % 100 == 0) { lpuPopulation.clearGraves(); }
-		if (iter % 1000 == 0) { 
-			visualizer->print(lpuPopulation); 
-		}
+		if (iter % config.snapshotInterval == 0) { visualizer->print(lpuPopulation); }
 
 		for (size_t i = 0; i < lpuPopulation.queueSize(); ++i) {
 			lpu = lpuPopulation.getQueue(i);
 			if (!lpu) { continue; }
 
-			for (size_t _ = 0; _ < stepsAllowed; ++_) {
+			for (size_t _ = 0; _ < config.stepsPerOrganism; ++_) {
 				randomizer->process();
-
 				lpu->step();
 			}
 		}
-		/* lpuPopulation.process(stepsAllowed); */
 	}
+
+	std::cout << "Simulation complete. Saving final snapshot to " << config.outputFile << std::endl;
+    visualizer->print(lpuPopulation);
 }

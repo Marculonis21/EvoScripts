@@ -9,14 +9,6 @@
 #include <optional>
 #include <vector>
 
-namespace {
-	enum class TemplateMatchMode {
-		FORWARD,
-		BACKWARD,
-		BIDIRECTIONAL
-	};
-};
-
 class Randomizer;
 
 class BaseMemoryType {
@@ -44,14 +36,21 @@ class BaseMemoryType {
 		std::unique_ptr<AllocStrategy> allocStrategy;
 		std::unique_ptr<MemoryCleanerStrategy> cleanerStrategy;
 
-		const int searchSize = 50;
+		const uint64_t searchSize = 50;
+		const uint8_t min_pattern_size = 3;
+
+		enum class TemplateMatchMode {
+            FORWARD,
+            BACKWARD,
+            BIDIRECTIONAL
+        };
 
 		virtual TemplateInfo loadInTemplate(uint64_t address) const;
 		virtual bool validateTemplate(const TemplateInfo &pattern, const MemorySpace &lpuSpace) const;
 
+
 		virtual MatchResult matchTemplateWorker(TemplateMatchMode mode, uint64_t address, const MemorySpace &lpuSpace) const;
-		virtual std::vector<MatchSearchHit> findMatchingTemplateForward(uint64_t address, TemplateInfo pattern) const;
-		virtual std::vector<MatchSearchHit> findMatchingTemplateBackward(uint64_t address, TemplateInfo pattern) const;
+		virtual std::vector<MatchSearchHit> scanTemplateRange(uint64_t rangeStart, uint64_t rangeEnd, const TemplateInfo &pattern, uint64_t originAddress) const;
 
 		friend Manager;
 		friend Randomizer;

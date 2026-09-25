@@ -17,10 +17,9 @@ std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &a
 
 	// middle = insert index - 1 ... find index of current caller cell (find
 	// returns next index, so -1)
-	
 	int middleIndex = allocatedSpaces.findInsertIndex(MemorySpace{caller, 0})-1;
 
-	bool backEnd, frontEnd = false;
+	bool backEnd = false, frontEnd = false;
 	int backIndex, frontIndex;
 
 	// a really weird loop - if we reach both the back and the front end, then

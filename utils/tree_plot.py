@@ -1,101 +1,110 @@
-#!/usr/bin/env python
-
-import sys 
-import plotly.graph_objects as go
-
-assert(len(sys.argv) == 2 and "We expect evodex file as input");
-
-class DexEntry:
-    def __init__(self, header):
-        # Occurence: 0
-        # Handle: 13088 Parent: 13045
-        # DNAPre: 13088, 12661, 12586, 11591, 11561, 11232, 11207, 11171, 11137, 11084, 11053, 11021, 10980, 10917, 10877, 10815, 10768, 9622, 9451, 
-        # DOB: 0
-        # Instructions (lenght: 83)
-        print(header)
-        self._get_occurence(header[0])
-        self._get_handles(header[1])
-        self._get_history(header[2])
-        self._get_instructions(header[4])
-
-        print(self.ID, self.pID, self.history, self.instr_lenght, self.occurence)
-
-    def _get_handles(self, line):
-        parts = line.split(" ")
-        self.ID = int(parts[1])
-        self.pID = int(parts[3])
-
-    def _get_history(self, line):
-        self.history = [int(x) for x in line.removeprefix("DNAPre: ").split(",") if x != ""]
-        self.label = self.history[0]
-        self.label_parent = self.history[-1]
-        if self.label == 0:
-            # hardcode it now
-            self.label_parent = 0
-
-    def _get_instructions(self, line):
-        parts = line.split(" ")
-        self.instr_lenght = (parts[2].removesuffix(')'))
-
-    def _get_occurence(self, line):
-        parts = line.split(" ")
-        self.occurence = (parts[1])
-
-print("Evodex path: ", sys.argv[1])
-
-dex_entries = []
-with open(sys.argv[1], "r") as f:
-    while True:
-        line = f.readline(-1).strip()
-
-        if line == "---- Memory print out ----":
-            break
-
-        if line == "ENTRY:":
-            header = []
-            for _ in range(5):
-                header.append(f.readline(-1).strip())
-
-            dex_entries.append(DexEntry(header))
-
-# fig = go.Figure(go.Treemap(
-#     labels = [x.label for x in dex_entries],
-#     parents = [x.label_parent for x in dex_entries],
-#     root_color="lightgrey"
-# ))
-# fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
-# fig.show()
-
-import igraph as ig
+#!/usr/bin/env python3
+import sys
+import json
+import os
+import networkx as nx
 import matplotlib.pyplot as plt
 
-# Create a graph object
-g = ig.Graph(directed=True)
+def hierarchy_pos(G, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5):
+    """
+    Computes a clean top-to-bottom tree layout for directed graphs.
+    """
+    def _hierarchy_pos(G, node, left, right, vert_loc, pos, visited):
+        visited.add(node)
+        pos[node] = ((left + right) / 2, vert_loc)
+        neighbors = [n for n in G.successors(node) if n not in visited]
+        if neighbors:
+            dx = (right - left) / len(neighbors)
+            nextx = left
+            for neighbor in neighbors:
+                _hierarchy_pos(G, neighbor, nextx, nextx + dx, vert_loc - vert_gap, pos, visited)
+                nextx += dx
 
-# Add vertices (nodes) - 7 nodes for a simple tree
-g.add_vertices(len(dex_entries))
+    pos = {}
+    visited = set()
+    roots = [n for n, d in G.in_degree() if d == 0] if root is None else [root]
+    
+    if not roots:
+        roots = list(G.nodes())[:1]
 
-labels = [x.label for x in dex_entries]
-g.vs["label"] = labels
+    dx = width / len(roots)
+    nextx = 0
+    for r in roots:
+        _hierarchy_pos(G, r, nextx, nextx + dx, vert_loc, pos, visited)
+        nextx += dx
 
-# Add edges (connections) to make it a tree (no cycles)
-edges = [(x.label_parent, x.label) for x in dex_entries]
-edges.sort(key=lambda x: (x[0], x[1]))
+    return pos
 
-for i, (parent, target) in enumerate(edges):
-    print(f"{i}/{len(edges)}")
-    _from = g.vs.find(label=parent)
-    _to   = g.vs.find(label=target)
-    g.add_edge(_from, _to)
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python3 utils/tree_plot.py <evodex.json>")
+        sys.exit(1)
 
+    filepath = sys.argv[1]
+    if not os.path.exists(filepath):
+        print(f"Error: File not found: {filepath}")
+        sys.exit(1)
 
-# Layout the tree - hierarchical layout for a tree structure
-layout = g.layout("tree")
+    print(f"Loading EvoDex JSON from: {filepath}")
+    with open(filepath, "r") as f:
+        data = json.load(f)
 
-# Plot the tree using the layout
-fig, ax = plt.subplots()
-ig.plot(g, layout=layout, target=ax, margin=10, vertex_size=20, vertex_label=g.vs["label"], edge_color=("lightgray", 0.1), edge_width=1, vertex_color=["green" if v["label"] == 0 else "red" for v in g.vs])
+    entries = data.get("evodex", [])
+    if not entries:
+        print("No recorded species found in the evodex JSON.")
+        return
 
-# Display the plot
-plt.tight_layout()
-plt.show()
+    print(f"Loaded {len(entries)} recorded species.")
+
+    # Create NetworkX Directed Graph
+    G = nx.DiGraph()
+
+    for entry in entries:
+        target = entry["handle"]
+        dna_pre = entry.get("dna_pre", [])
+        parent = dna_pre[-1] if len(dna_pre) > 1 else entry.get("parent", 0)
+
+        G.add_node(target, 
+                   length=entry.get("genome_length", "?"), 
+                   occurence=entry.get("occurence", 1))
+
+        if parent not in G:
+            G.add_node(parent, length="?", occurence=1)
+
+        if parent != target:
+            G.add_edge(parent, target)
+
+    if G.number_of_edges() == 0 and G.number_of_nodes() <= 1:
+        print("Only ancestor present, no branching links to plot.")
+        return
+
+    # Calculate hierarchical tree layout
+    try:
+        pos = hierarchy_pos(G)
+    except Exception:
+        pos = nx.spring_layout(G, seed=42)
+
+    # Node styling
+    node_colors = ["#4CAF50" if node == 0 else "#2196F3" for node in G.nodes()]
+    labels = {node: f"{node}\n(L={G.nodes[node].get('length', '?')})" for node in G.nodes()}
+
+    fig, ax = plt.subplots(figsize=(14, 9))
+
+    nx.draw_networkx_nodes(G, pos, ax=ax, node_color=node_colors, node_size=1500, edgecolors="#333333")
+    nx.draw_networkx_labels(G, pos, labels=labels, ax=ax, font_size=8, font_family="sans-serif")
+    nx.draw_networkx_edges(
+        G, pos, ax=ax, 
+        edge_color="#888888", 
+        arrows=True, 
+        arrowsize=15, 
+        arrowstyle="-|>", 
+        node_size=1500
+    )
+
+    ax.set_title(f"EvoScripts Phylogenetic Tree ({G.number_of_nodes()} species)", fontsize=14, fontweight="bold")
+    ax.axis("off")
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    main()

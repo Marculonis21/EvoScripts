@@ -60,17 +60,21 @@ class ESParses {
 	}
 
 	std::string static trim(std::string &str) {
+		if (str.empty()) { return str; }
+
 		int i = 0;
 
 		// left trim
-		while (isspace(str[i]) != 0)
-			i++;
+		while (isspace(str[i]) != 0) { 
+			i++; 
+		}
 		str = str.substr(i, str.length() - i);
 
 		// right trim
 		i = str.length() - 1;
-		while (isspace(str[i]) != 0)
+		while (isspace(str[i]) != 0) {
 			i--;
+		}
 		str = str.substr(0, i + 1);
 
 		return str;

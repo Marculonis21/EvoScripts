@@ -47,7 +47,7 @@ enum class Instr : uint8_t {
 	divide = 0x1a,
 };
 
-const std::unordered_map<uint8_t, std::string> instrToStringMap { 
+inline const std::unordered_map<uint8_t, std::string> instrToStringMap { 
 	{(uint8_t)Instr::nop0  , "nop0"   },
 	{(uint8_t)Instr::nop1  , "nop1"   },
 	{(uint8_t)Instr::jmp   , "jmp"    },
@@ -76,7 +76,7 @@ const std::unordered_map<uint8_t, std::string> instrToStringMap {
 	{(uint8_t)Instr::divide, "divide" },
 };
 
-const std::unordered_map<std::string, Instr> stringToInstrMap { 
+inline const std::unordered_map<std::string, Instr> stringToInstrMap { 
 	{"nop0"  , Instr::nop0   },
 	{"nop1"  , Instr::nop1   },
 	{"jmp"   , Instr::jmp    },

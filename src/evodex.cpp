@@ -1,21 +1,23 @@
 #include "evodex.hpp"
-#include <iostream>
-#include <ostream>
+#include "lpu_addons.hpp"
 
 void EvoDex::insert(const LPU &parent, const LPU &offspring, const LPU::Metadata &metadata) {
 	// Instruction comparison
-	// We are looking for individuals which are able to replicate themselves correctly
-	if (!(parent == offspring)) { return; }
+	// We are looking for individuals which are able to replicate themselves correctly and fully
+	if (!(parent.getInstructions() == offspring.getInstructions())) { return; }
 
-	auto it = dex.find(parent);
+	const auto &key = metadata.instructions;
+	auto it = dex.find(key);
 
+	// Does not exist yet -> create new species entry and register founder handle
 	if (it == dex.end()) { 
-		dex.emplace(parent, Bucket{metadata}); 
+		dex.emplace(key, Bucket{metadata}); 
+		recordedHandles.insert(metadata.handle);
 		return; 
 	}
 
+	// Exists -> find where to increase occurence
 	Bucket &bucket = it->second;
-
 	for (auto &entry : bucket) {
 		if (entry == metadata) { 
 			entry.occurence += 1;
@@ -23,15 +25,10 @@ void EvoDex::insert(const LPU &parent, const LPU &offspring, const LPU::Metadata
 		}
 	}
 
-	dex[parent].push_back(metadata);
+	bucket.push_back(metadata);
+	recordedHandles.insert(metadata.handle);
 }
 
 bool EvoDex::exists(const LPUHandle &handle) {
-	for (auto && pair : dex) {
-		if (handle == pair.first.getHandle()) {
-			return true;
-		}
-	}
-
-	return false;
+	return recordedHandles.contains(handle);
 }

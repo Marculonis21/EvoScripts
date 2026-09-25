@@ -1,7 +1,6 @@
 #include "memoryHelperStructs.hpp"
 #include <cstdint>
-#include <pstl/glue_algorithm_defs.h>
-#include <iostream>
+#include <algorithm>
 
 MemorySpace::MemorySpace(uint64_t start, uint64_t size) {
     this->start = start;

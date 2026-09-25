@@ -15,7 +15,9 @@ class LPUPool {
 
 	  LPU* getQueue(size_t i) const;
 	  size_t queueSize() const;
+	  size_t aliveSize() const;
 
+	  // universal selector, returns vec of pairs (handle, selected_value) based on some condition
 	  template<typename T>
 	  std::vector<std::pair<LPUHandle, T>> select(std::function<T(LPU*)> selector) const {
 		  std::vector<std::pair<LPUHandle, T>> output;

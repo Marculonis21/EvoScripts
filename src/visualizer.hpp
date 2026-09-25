@@ -31,3 +31,11 @@ class TXTFileVisualizer: public VisualizerStrategy {
   private: 
     const std::string path;
 };
+
+class JSONVisualizer: public VisualizerStrategy {
+  public:
+    JSONVisualizer(BaseMemoryType *memPtr, EvoDex *evoDexPtr, std::string path) : VisualizerStrategy(memPtr, evoDexPtr), path(path) {}
+	void print(const LPUPool &pool) const override;
+  private: 
+    const std::string path;
+};
