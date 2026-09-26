@@ -32,3 +32,9 @@ build/*
 *.exe
 *.out
 *.app
+
+# Python & Web Outputs
+__pycache__/
+*.py[cod]
+evodex_explorer.html
+

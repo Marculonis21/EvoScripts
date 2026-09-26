@@ -51,5 +51,5 @@ size_t LPUPool::queueSize() const {
 }
 
 size_t LPUPool::aliveSize() const {
-	return lpuPool.count();
+	return lpuPool.size();
 }

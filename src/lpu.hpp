@@ -73,7 +73,7 @@ class LPU {
 
 		uint64_t dateofbirth;
 		Instructions instructions;
-		uint64_t occurence=0;
+		uint64_t occurence=1;
 
 		Metadata() = default;
 		Metadata(const LPU &lpu);

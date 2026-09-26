@@ -12,9 +12,12 @@
 #include <string>
 #include <sys/types.h>
 #include <vector>
+#include <chrono>
+
+using namespace std::chrono_literals;
 
 Manager::Manager(SimConfig simConfig) {
-	this->stepCounter = 0;
+	this->iterationCounter = 0;
 	this->lpuIDCounter = 0;
 	this->config = simConfig;
 
@@ -43,9 +46,7 @@ Manager::Manager(SimConfig simConfig) {
 }
 
 LPU* Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
-	return lpuPopulation.addLPU(predecessor, observers, std::move(newMemoryRecord), 0);
-
-	/* std::cout << "Added new lpu " << std::endl; */
+	return lpuPopulation.addLPU(predecessor, observers, std::move(newMemoryRecord), iterationCounter);
 }
 
 void Manager::removeLPU(LPUHandle handle) {
@@ -57,7 +58,6 @@ void Manager::removeLPU(LPUHandle handle) {
 	auto [rec_main, rec_off] = lpuPopulation.get(handle)->getMemRecords();
 
 	lpuPopulation.removeLPU(handle);
-	/* std::cout << "Removed lpu (Handle id: " << handle.id << ")" << std::endl; */
 
 	assert(!rec_main.isEmpty() && "We don't know what we are removing?");
 
@@ -93,14 +93,19 @@ MemorySpace Manager::insert(const std::string &filename) {
 }
 
 void Manager::sim() {
-	LPU* lpu;
-	for (uint64_t iter = 0; 
-		 config.maxIterations == 0 || iter < config.maxIterations; 
-		 ++iter) {
+	std::chrono::time_point last = std::chrono::system_clock::now();
+	std::chrono::time_point now = std::chrono::system_clock::now();
+	float step_per_seconds = 0;
+	uint64_t step_counter = 0;
 
-		printf("Iteration %lu | Population: %zu\n", iter, lpuPopulation.aliveSize());
-		if (iter % 100 == 0) { lpuPopulation.clearGraves(); }
-		if (iter % config.snapshotInterval == 0) { visualizer->print(lpuPopulation); }
+	LPU* lpu;
+	for (iterationCounter = 0; 
+		 config.maxIterations == 0 || iterationCounter < config.maxIterations; 
+		 ++iterationCounter) {
+
+		printf("Iteration %lu | Population: %zu | Steps/s:  %.1f\n", iterationCounter, lpuPopulation.aliveSize(), step_per_seconds);
+		if (iterationCounter % 100 == 0) { lpuPopulation.clearGraves(); }
+		if (iterationCounter % config.snapshotInterval == 0) { visualizer->print(lpuPopulation); }
 
 		for (size_t i = 0; i < lpuPopulation.queueSize(); ++i) {
 			lpu = lpuPopulation.getQueue(i);
@@ -109,6 +114,16 @@ void Manager::sim() {
 			for (size_t _ = 0; _ < config.stepsPerOrganism; ++_) {
 				randomizer->process();
 				lpu->step();
+			}
+
+			step_counter += config.stepsPerOrganism;
+
+			now = std::chrono::system_clock::now();
+			if (now - last >= 1s) {
+				step_per_seconds = step_counter;
+
+				last = now;
+				step_counter = 0;
 			}
 		}
 	}

@@ -45,7 +45,8 @@ class Manager {
 
 	MemorySpace insert(const std::string &filename);
 
-	uint64_t stepCounter;
+	uint64_t iterationCounter;
 	uint64_t lpuIDCounter;
+
 	SimConfig config;
 };
