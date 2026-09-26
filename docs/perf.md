@@ -20,4 +20,16 @@
 |Total Tracked CPU Time           |  16454.75 ms | 100.00%   |           |
 
 
+### 2026-09-26 22:39 (Randomizer improvements)
 
+| Subsystem                        |   Time (ms)  |  Share % | Calls
+|---------------------------------|-------------:|----------:|----------:|
+|LPU Instruction Step             |   3476.54 ms |  30.99%   |   1007762 |
+|Randomizer / Mutations           |   3567.98 ms |  31.81%   | 100776200 |
+|Template Matching (fndb/fndf)    |   2172.96 ms |  19.37%   |   9822643 |
+|Memory Allocation (maloc)        |   1372.52 ms |  12.24%   |    232710 |
+|Memory Copying (movi)            |    347.77 ms |   3.10%   |   9261743 |
+|Grave Cleanup                    |      1.66 ms |   0.01%   |       100 |
+|Snapshot Writing                 |    277.83 ms |   2.48%   |        11 |
+| | | |
+|Total Tracked CPU Time           |  11217.26 ms | 100.00% | |

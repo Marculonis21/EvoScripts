@@ -1,26 +1,29 @@
 #include "randomizer.hpp"
 
-void Randomizer::process() {
-	// update the random values
-	randomRes.update();
+Randomizer::CosmicRays::CosmicRays(uint64_t memorySize) : memPosDistr(0, memorySize-1) {}
 
-	if (randomRes.crr_memory <= CRR_MEMORY_RATE) {
+void Randomizer::CosmicRays::operator()(BaseMemoryType *mem, std::mt19937 &rng) {
+	uint64_t pos = memPosDistr(rng);
+	uint8_t bit = bitPosDistr(rng);
 
-		std::uniform_int_distribution<uint64_t> memPos(0, memPtr->memory.size()-1);
-		std::uniform_int_distribution<uint8_t> bitPos(0, 4);
-		uint64_t pos = memPos(randomRes.engine);
-		uint8_t bit = bitPos(randomRes.engine);
+	mem->memory[pos] ^= (static_cast<uint8_t>(1) << bit);
+}
 
-		// flip n-th bit
-		memPtr->memory[pos] ^= ((uint8_t)1 << bit); 
+uint8_t Randomizer::InstructionFailure::operator()(std::mt19937 &rng) {
+	return instrDistr(rng);
+}
+
+Randomizer::Randomizer(BaseMemoryType *memPtr) : memPtr(memPtr), engine(std::random_device{}()), cosmicRays(memPtr->getMemorySize()) {}
+
+void Randomizer::step() {
+	if (realDistr(engine) <= CRR_MEMORY_RATE) {
+		cosmicRays(memPtr, engine);
 	}
 }
 
-uint8_t Randomizer::cp_instr_process(uint8_t original) {
-	// fail
-	if (randomRes.cp_instr > CP_INSTR_RATE) { return original; }
-
-	// else
-	std::uniform_int_distribution<uint8_t> instrDistr(0, 0x1a);
-	return instrDistr(randomRes.engine);
+uint8_t Randomizer::instructionCopyStep(uint8_t original) {
+	if (realDistr(engine) <= CP_INSTR_RATE) {
+		return instructionFailure(engine);
+	}
+	return original;
 }

@@ -233,7 +233,7 @@ bool BaseMemoryType::copy(const MemorySpace &lpuSpace,
 	if (!lpuSpace.contains(addressTo) && !lpuSpaceOffspring.contains(addressTo)) { return false; }
 	if (addressFrom >= memory.size()) { return false; }
 
-	memory[addressTo] = !randomizer ? memory[addressFrom] : randomizer->cp_instr_process(memory[addressFrom]);
+	memory[addressTo] = !randomizer ? memory[addressFrom] : randomizer->instructionCopyStep(memory[addressFrom]);
 
 	return true;
 }

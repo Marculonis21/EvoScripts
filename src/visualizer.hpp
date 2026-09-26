@@ -10,6 +10,7 @@ class VisualizerStrategy {
       this->memPtr = memPtr; 
       this->evoDexPtr = evoDexPtr; 
     };
+    virtual ~VisualizerStrategy() = default;
 
 	virtual void print(const LPUPool &pool) const = 0;
 

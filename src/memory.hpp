@@ -17,6 +17,8 @@ class BaseMemoryType {
 				std::unique_ptr<AllocStrategy> allocStrategy,
 				std::unique_ptr<MemoryCleanerStrategy> cleanerStrategy);
 
+		virtual ~BaseMemoryType() = default;
+
 		virtual std::optional<uint8_t> fetch(uint64_t address) const;
 		virtual std::optional<MemorySpace> allocate(uint64_t address, uint64_t size, LPUHandle handle);
 

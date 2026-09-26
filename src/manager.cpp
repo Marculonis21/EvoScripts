@@ -135,7 +135,7 @@ void Manager::sim() {
 			for (size_t _ = 0; _ < config.stepsPerOrganism; ++_) {
 				{
 					ProfileScope pr(PROF_RANDOMIZER);
-					randomizer->process();
+					randomizer->step();
 				}
 				lpu->step();
 			}
