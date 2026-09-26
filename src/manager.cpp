@@ -4,6 +4,7 @@
 #include "memory.hpp"
 #include "memoryHelperStructs.hpp"
 #include "visualizer.hpp"
+#include "profiler.hpp"
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
@@ -20,6 +21,7 @@ Manager::Manager(SimConfig simConfig) {
 	this->iterationCounter = 0;
 	this->lpuIDCounter = 0;
 	this->config = simConfig;
+	Profiler::get().enabled = config.enableProfiling;
 
 	memory = std::make_unique<BaseMemoryType>(
 		config.memorySize, 
@@ -92,42 +94,79 @@ MemorySpace Manager::insert(const std::string &filename) {
 	return mRecord;
 }
 
+static std::string formatRate(double rate) {
+	char buf[64];
+	if (rate >= 1e6) {
+		std::snprintf(buf, sizeof(buf), "%.2f MStep/s", rate / 1e6);
+	} else if (rate >= 1e3) {
+		std::snprintf(buf, sizeof(buf), "%.1f KStep/s", rate / 1e3);
+	} else {
+		std::snprintf(buf, sizeof(buf), "%.0f Step/s", rate);
+	}
+	return std::string(buf);
+}
+
 void Manager::sim() {
-	std::chrono::time_point last = std::chrono::system_clock::now();
-	std::chrono::time_point now = std::chrono::system_clock::now();
-	float step_per_seconds = 0;
-	uint64_t step_counter = 0;
+	using clock = std::chrono::steady_clock;
+
+	auto tLast = clock::now();
+	double currentSPS = 0;
+	uint64_t stepSamples = 0;
 
 	LPU* lpu;
 	for (iterationCounter = 0; 
 		 config.maxIterations == 0 || iterationCounter < config.maxIterations; 
 		 ++iterationCounter) {
 
-		printf("Iteration %lu | Population: %zu | Steps/s:  %.1f\n", iterationCounter, lpuPopulation.aliveSize(), step_per_seconds);
-		if (iterationCounter % 100 == 0) { lpuPopulation.clearGraves(); }
-		if (iterationCounter % config.snapshotInterval == 0) { visualizer->print(lpuPopulation); }
+		if (iterationCounter % 100 == 0) {
+			ProfileScope p(PROF_GRAVES);
+			lpuPopulation.clearGraves();
+		}
+		if (iterationCounter % config.snapshotInterval == 0) {
+			ProfileScope p(PROF_SNAPSHOT);
+			visualizer->print(lpuPopulation);
+		}
 
 		for (size_t i = 0; i < lpuPopulation.queueSize(); ++i) {
 			lpu = lpuPopulation.getQueue(i);
 			if (!lpu) { continue; }
 
+			ProfileScope p(PROF_EXEC);
 			for (size_t _ = 0; _ < config.stepsPerOrganism; ++_) {
-				randomizer->process();
+				{
+					ProfileScope pr(PROF_RANDOMIZER);
+					randomizer->process();
+				}
 				lpu->step();
 			}
+			
+			stepSamples += config.stepsPerOrganism;
+		}
 
-			step_counter += config.stepsPerOrganism;
+		auto tNow = clock::now();
+		double elapsed = std::chrono::duration<double>(tNow - tLast).count();
 
-			now = std::chrono::system_clock::now();
-			if (now - last >= 1s) {
-				step_per_seconds = step_counter;
+		if (elapsed >= 0.25) {
+			currentSPS = static_cast<double>(stepSamples) / elapsed;
+			stepSamples = 0;
+			tLast = tNow;
+		}
 
-				last = now;
-				step_counter = 0;
-			}
+		if (iterationCounter % 100 == 0) {
+			printf("Iteration %lu | Population: %zu | Speed: %s\n",
+				   iterationCounter,
+				   lpuPopulation.aliveSize(),
+				   formatRate(currentSPS).c_str());
 		}
 	}
 
 	std::cout << "Simulation complete. Saving final snapshot to " << config.outputFile << std::endl;
-    visualizer->print(lpuPopulation);
+	{
+		ProfileScope p(PROF_SNAPSHOT);
+		visualizer->print(lpuPopulation);
+	}
+
+	if (config.enableProfiling) {
+		Profiler::get().printReport();
+	}
 }

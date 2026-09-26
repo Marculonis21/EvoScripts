@@ -4,6 +4,7 @@
 #include "memoryCleaner.hpp"
 #include "memoryHelperStructs.hpp"
 #include "randomizer.hpp"
+#include "profiler.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -44,6 +45,7 @@ uint64_t BaseMemoryType::getMemorySize() const { return memory.size(); }
 std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 													uint64_t size,
 													LPUHandle caller) {
+	ProfileScope p(PROF_ALLOC);
 	// simple constraints on soup size
 	if (memory.size() < size*0.25) {
 		return std::nullopt;
@@ -158,6 +160,7 @@ MatchResult BaseMemoryType::matchTemplate(uint64_t address, const MemorySpace &l
 }
 
 MatchResult BaseMemoryType::matchTemplateWorker(TemplateMatchMode mode, uint64_t address, const MemorySpace &lpuSpace) const {
+	ProfileScope p(PROF_TEMPLATE_MATCH);
 	TemplateInfo pattern = loadInTemplate(address);
 
 	if (!validateTemplate(pattern, lpuSpace)) {
@@ -226,6 +229,7 @@ bool BaseMemoryType::copy(const MemorySpace &lpuSpace,
 						  const MemorySpace &lpuSpaceOffspring,
 						  uint64_t addressFrom, uint64_t addressTo,
 						  Randomizer *randomizer) {
+	ProfileScope p(PROF_COPY);
 	if (!lpuSpace.contains(addressTo) && !lpuSpaceOffspring.contains(addressTo)) { return false; }
 	if (addressFrom >= memory.size()) { return false; }
 

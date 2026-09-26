@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
                 << "  -s, --steps <n>           Steps per creature per turn (default: 100)\n"
                 << "  -p, --snapshot <n>        Interval for writing snapshots (default: 1000)\n"
                 << "  --out <path>              Output file path (default: evodex.json)\n"
+                << "  -P, --profile             Enable performance subsystem breakdown\n"
                 << "  -h, --help                Show this help message\n";
             return 0;
         } else if ((arg == "-a" || arg == "--ancestor") && i + 1 < argc) {
@@ -30,6 +31,8 @@ int main(int argc, char *argv[]) {
             config.snapshotInterval = std::stoull(argv[++i]);
         } else if (arg == "--out" && i + 1 < argc) {
             config.outputFile = argv[++i];
+        } else if (arg == "--profile" || arg == "-P") {
+            config.enableProfiling = true;
         } else {
             std::cerr << "Unknown argument: " << arg << " (see --help)\n";
             return 1;

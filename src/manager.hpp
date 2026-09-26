@@ -18,6 +18,7 @@ struct SimConfig {
 	uint64_t snapshotInterval = 1000;
 	std::string ancestorFile = "ancestors/tester.es";
 	std::string outputFile = "evodex.json";
+	bool enableProfiling = false;
 };
 
 class Manager {
