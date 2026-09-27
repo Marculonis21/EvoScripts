@@ -20,6 +20,7 @@ class BaseMemoryType {
 		virtual ~BaseMemoryType() = default;
 
 		virtual std::optional<uint8_t> fetch(uint64_t address) const;
+		virtual uint8_t fetchUnsafe(uint64_t address) const;
 		virtual std::optional<MemorySpace> allocate(uint64_t address, uint64_t size, LPUHandle handle);
 
 		virtual uint64_t getMemorySize() const;
@@ -52,7 +53,7 @@ class BaseMemoryType {
 
 
 		virtual MatchResult matchTemplateWorker(TemplateMatchMode mode, uint64_t address, const MemorySpace &lpuSpace) const;
-		virtual std::vector<MatchSearchHit> scanTemplateRange(uint64_t rangeStart, uint64_t rangeEnd, const TemplateInfo &pattern, uint64_t originAddress) const;
+		virtual std::optional<MatchSearchHit> scanTemplateRange(uint64_t rangeStart, uint64_t rangeEnd, const TemplateInfo &pattern, uint64_t originAddress) const;
 
 		friend Manager;
 		friend Randomizer;

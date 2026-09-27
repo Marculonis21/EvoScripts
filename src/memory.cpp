@@ -10,13 +10,10 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
-#include <iostream>
-#include <iterator>
+#include <limits>
 #include <optional>
-#include <string>
 #include <utility>
 #include <vector>
-#include <iostream>
 
 BaseMemoryType::BaseMemoryType(uint64_t size,
 							   std::unique_ptr<AllocStrategy> allocStrategy,
@@ -34,6 +31,9 @@ std::optional<uint8_t> BaseMemoryType::fetch(uint64_t address) const {
 	}
 
 	return std::nullopt;
+}
+uint8_t BaseMemoryType::fetchUnsafe(uint64_t address) const {
+	return memory[address];
 }
 
 uint64_t BaseMemoryType::getMemorySize() const { return memory.size(); }
@@ -80,9 +80,8 @@ std::optional<MemorySpace> BaseMemoryType::allocate(uint64_t address,
 
 TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 	uint64_t res = 0;
-	uint8_t offset = 0;
 
-	while (true) {
+	for (uint8_t offset = 0; ; ++offset) {
 		// start loading after the original instr address
 		switch (fetch(address + 1 + offset).value_or(0)) {
 			case 0x01: // nop0
@@ -93,8 +92,6 @@ TemplateInfo BaseMemoryType::loadInTemplate(uint64_t address) const {
 			default:
 				return TemplateInfo{address, res, offset};
 		}
-
-		offset++;
 	}
 }
 
@@ -102,36 +99,41 @@ bool BaseMemoryType::validateTemplate(const TemplateInfo &pattern, const MemoryS
 	return pattern.patternSize >= min_pattern_size && (!lpuSpace.contains(pattern.start) || lpuSpace.contains(pattern.start+pattern.patternSize));
 }
 
-std::vector<MatchSearchHit> BaseMemoryType::scanTemplateRange(
+std::optional<MatchSearchHit> BaseMemoryType::scanTemplateRange(
 		uint64_t rangeStart,
 		uint64_t rangeEnd,
 		const TemplateInfo &pattern,
 		uint64_t originAddress) const
 {
-	std::vector<MatchSearchHit> hitVector;
-
 	// find pattern complement
 	uint64_t mask = (1ULL << pattern.patternSize) - 1;
 	uint64_t expected = (~pattern.pattern) & mask;
 
-	uint8_t offset = 0;
 	uint64_t check = 0;
+	uint8_t offset = 0;
 	uint8_t instr = 0;
-	std::optional<uint8_t> fetchedInstr = std::nullopt;
+
+	MatchSearchHit bestMatch{0, std::numeric_limits<uint64_t>::max()};
+
+	auto dist = [](uint64_t x, uint64_t y) -> uint64_t {
+        return (x > y) ? (x - y) : (y - x);
+    };
 
 	auto evaluateMatch = [&](uint64_t i) {
 		if (offset == pattern.patternSize && check == expected) {
-			// TODO: distance not used just yet
-			hitVector.emplace_back(MatchSearchHit{i - offset, 0.0f}); 
+
+			// Dist from origin to start of the template -- finding closest
+			auto matchDistance = dist(originAddress, i - offset);
+			if (matchDistance < bestMatch.distance) {
+				bestMatch = MatchSearchHit{i - offset, matchDistance};
+			}
 		}
 		check = 0;
 		offset = 0;
 	};
 
 	for (uint64_t i = rangeStart; i < rangeEnd; ++i) {
-		fetchedInstr = fetch(i);
-		if (!fetchedInstr.has_value()) { break; }
-		instr = *fetchedInstr;
+		instr = fetchUnsafe(i);
 
 		if (instr == 0x01 || instr == 0x02) {
 			check |= (instr == 0x02 ? 1ULL : 0ULL) << offset;
@@ -144,7 +146,10 @@ std::vector<MatchSearchHit> BaseMemoryType::scanTemplateRange(
 	// in case template was at the end of range
 	evaluateMatch(rangeEnd);
 
-	return hitVector;
+	if (bestMatch.distance < std::numeric_limits<uint64_t>::max()) {
+		return bestMatch;
+	}
+	return std::nullopt;
 }
 
 MatchResult BaseMemoryType::matchTemplateBackward(uint64_t address, const MemorySpace &lpuSpace) const {
@@ -167,52 +172,46 @@ MatchResult BaseMemoryType::matchTemplateWorker(TemplateMatchMode mode, uint64_t
 		return MatchResult::FAIL();
 	}
 
-	std::vector<MatchSearchHit> hitVector;
+	std::optional<MatchSearchHit> match;
 
 	uint64_t start, end;
 	switch (mode) {
 		case TemplateMatchMode::FORWARD:
-			start = address + pattern.patternSize + 1;
+			start = std::min(getMemorySize(), address + pattern.patternSize + 1);
 			end = std::min(getMemorySize(), start + searchSize);
-			hitVector = scanTemplateRange(start, end, pattern, address);
+			match = scanTemplateRange(start, end, pattern, address);
 			break;
 		case TemplateMatchMode::BACKWARD:
-			start = (address < searchSize) ? 0 : address - searchSize;
-			hitVector = scanTemplateRange(start, address, pattern, address);
+			end = std::min(getMemorySize(), address); 
+			start = (end < searchSize) ? 0 : end - searchSize;
+			match = scanTemplateRange(start, end, pattern, address);
 			break;
 		case TemplateMatchMode::BIDIRECTIONAL:
 			start = address + pattern.patternSize + 1;
 			end = std::min(getMemorySize(), start + searchSize);
-			auto hVf = scanTemplateRange(start, end, pattern, address);
+			auto forwardMatch = scanTemplateRange(start, end, pattern, address);
 
 			start = (address < searchSize) ? 0 : address - searchSize;
-			auto hVb = scanTemplateRange(start, address, pattern, address);
+			auto backwardMatch = scanTemplateRange(start, address, pattern, address);
 
-			hitVector.reserve(hVb.size() + hVf.size());
-			hitVector = hVb;
-			hitVector.insert(hitVector.end(), hVf.begin(), hVf.end());
+			if (forwardMatch.value_or(MatchSearchHit{}).distance < backwardMatch.value_or(MatchSearchHit{}).distance) {
+				match = forwardMatch;
+			}
+			else {
+				match = backwardMatch;
+			}
+
 			break;
 	}
 
-	if (hitVector.size() == 0) {
+	if (!match.has_value()) {
 		return MatchResult::FAIL();
 	}
 
-	auto dist = [](uint64_t x, uint64_t y) -> uint64_t {
-        return (x > y) ? (x - y) : (y - x);
-    };
+	return MatchResult::SUCCESS((*match).address);
 
-    std::sort(hitVector.begin(), hitVector.end(),
-        [address, &dist](const MatchSearchHit &a, const MatchSearchHit &b) {
-            return dist(a.address, address) < dist(b.address, address);
-        }
-    );
-	
-	// return closest
-	return MatchResult::SUCCESS(hitVector[0].address);
-
-	// TODO: select with probability based on distance
-	// std::random_shuffle(hitVector.begin(), hitVector.end());
+	// TODO: could select with probability based on distance from vector of hit
+	// matches
 }
 
 

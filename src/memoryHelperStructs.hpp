@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 struct TemplateInfo {
@@ -20,7 +21,7 @@ struct MatchResult {
 
 struct MatchSearchHit {
 	uint64_t address = 0;
-	float distance = 0.0;
+	uint64_t distance = std::numeric_limits<uint64_t>::max();
 };
 
 struct MemorySpace {
