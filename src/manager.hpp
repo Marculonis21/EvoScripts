@@ -8,6 +8,7 @@
 #include "visualizer.hpp"
 #include "randomizer.hpp"
 #include <memory>
+#include <utility>
 #include <vector>
 
 // Guard these defaults with your life...
@@ -28,10 +29,11 @@ class Manager {
 	LPU* addLPU(LPUHandle predecessor, MemorySpace &&memoryRecord);
 	void removeLPU(LPUHandle handle);
 
-	template<typename T>
-	std::vector<std::pair<LPUHandle, T>> selectLPUs(std::function<T(LPU*)> selector) {
-		return lpuPopulation.select(selector);
+	template<typename Func>
+	void forEachLPU(Func &&fn) {
+		lpuPopulation.forEach(std::forward<Func>(fn));
 	}
+
 	void sim();
 
   private:

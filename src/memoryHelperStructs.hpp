@@ -40,6 +40,9 @@ struct MemorySpace {
 	bool operator==(const MemorySpace& other) const {
 		return start == other.start && size == other.size;
 	}
+	bool operator<(const MemorySpace &other) const {
+        return start < other.start || (start == other.start && size < other.size);
+    }
 
 	static MemorySpace EMPTY() { return MemorySpace(0,0); }
 };
@@ -59,12 +62,12 @@ class AllocSpacesContainer {
 	const_iterator end() const { return allocatedSpaces.end(); };
 	const_iterator cbegin() const { return allocatedSpaces.cbegin(); };
 	const_iterator cend() const { return allocatedSpaces.cend(); };
-	const MemorySpace &at(size_t i) const { return allocatedSpaces.at(i); };
+	const MemorySpace &operator[](size_t i) const { return allocatedSpaces[i]; }
+	// const MemorySpace &at(size_t i) const { return allocatedSpaces.at(i); };
 	size_t size() const { return allocatedSpaces.size(); };
 
-	int findInsertIndex(const MemorySpace &testSpace) const;
+	size_t findSpaceIndex(uint64_t address) const;
 
   private:
-	int fitBinarySearch(const MemorySpace &testSpace, int low, int high) const;
 	msVec allocatedSpaces;
 };

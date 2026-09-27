@@ -29,41 +29,37 @@ bool MemorySpace::isEmpty() const {
 }
 
 AllocSpacesContainer::AllocSpacesContainer(uint64_t memorySize) {
-    // boundary memorySpaces
+    // push boundary memory spaces on init
     allocatedSpaces.push_back(MemorySpace{0,0});
     allocatedSpaces.push_back(MemorySpace{memorySize,0});
 }
 
 void AllocSpacesContainer::insert(MemorySpace inserted) {
-	// keeping the invariant of sorted memory spaces so they can be easily
-	// traversed and checked during allocation
-    
-    auto fitIndex = findInsertIndex(inserted);
-    allocatedSpaces.insert(allocatedSpaces.cbegin() + fitIndex, inserted);
+    auto it = std::lower_bound(allocatedSpaces.begin(), allocatedSpaces.end(), inserted);
+
+    allocatedSpaces.insert(it, inserted);
 }
 
 void AllocSpacesContainer::erase(MemorySpace erased) {
-    allocatedSpaces.erase(std::remove(allocatedSpaces.begin(), allocatedSpaces.end(), erased), allocatedSpaces.end());
+    auto it = std::lower_bound(allocatedSpaces.begin(), allocatedSpaces.end(), erased);
+
+    if (it != allocatedSpaces.end() && *it == erased) {
+        allocatedSpaces.erase(it);
+    }
 }
 
-int AllocSpacesContainer::findInsertIndex(const MemorySpace &testSpace) const {
-    return fitBinarySearch(testSpace, 0, allocatedSpaces.size()-1);
-}
+size_t AllocSpacesContainer::findSpaceIndex(uint64_t address) const {
+    /*
+	Find memory space index from which an address comes from (used for caller
+	finding -- if there is no space on this address it will still return
+	something)
+    */
 
-int AllocSpacesContainer::fitBinarySearch(const MemorySpace &testSpace, int low, int high) const {
-	// return the index of an element in the sorted array after which the
-	// `testSpace` should be inserted to keep the sorted invariant
+	// WARN: UPPER_BOUND
+    auto it = std::upper_bound(allocatedSpaces.begin(), allocatedSpaces.end(), address,
+            [](uint64_t addr, const MemorySpace &space) {
+                return addr < space.start;
+            });
 
-    if (low >= high) {
-        return low;
-    }
-
-    int middle = low + (high - low) / 2;
-    
-    if (testSpace.start < allocatedSpaces[middle].start) {
-        return fitBinarySearch(testSpace, low, middle);
-    }
-    else {
-        return fitBinarySearch(testSpace, middle+1, high);
-    }
+    return std::distance(allocatedSpaces.begin(), it) - 1;
 }

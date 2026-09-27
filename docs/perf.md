@@ -47,3 +47,17 @@
 | Snapshot Writing                 |    449.44 ms |   4.46%   |        11| 
 | | | |
 | Total Tracked CPU Time           |  10076.36 ms | 100.00% |            | 
+
+### 2026-09-27 16:26 (Maloc/Clean improvements -- lpu selector update)
+
+| Subsystem                        |   Time (ms)  |  Share % | Calls     | 
+|----------------------------------|-------------:|---------:|----------:| 
+| LPU Instruction Step             |   3518.60 ms |  36.60%  |    986824 | 
+| Randomizer / Mutations           |   3680.59 ms |  38.29%  |  98682400 | 
+| Template Matching (fndb/fndf)    |   1413.01 ms |  14.70%  |   9931417 | 
+| Memory Allocation (maloc)        |    168.95 ms |   1.76%  |    212408 | 
+| Memory Copying (movi)            |    356.73 ms |   3.71%  |   9446214 | 
+| Grave Cleanup                    |      1.78 ms |   0.02%  |       100 | 
+| Snapshot Writing                 |    473.61 ms |   4.93%  |        11 | 
+| | | |                                                                  
+| Total Tracked CPU Time           |   9613.26 ms | 100.00% |            | 

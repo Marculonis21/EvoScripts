@@ -10,7 +10,6 @@ class MemoryCleanerStrategy {
 	virtual ~MemoryCleanerStrategy() = default;
 
 	virtual bool clean(LPUHandle caller) const = 0;
-
 };
 
 class ErrorFirstCleanerStrategy : public MemoryCleanerStrategy{

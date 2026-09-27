@@ -37,7 +37,7 @@ Manager::Manager(SimConfig simConfig) {
 
 	this->randomizer = std::make_unique<Randomizer>(memory.get());
 
-	observers = LPUObservers{this->memory.get(), this, this->randomizer.get(), evoDex.get() };
+	this->observers = LPUObservers{this->memory.get(), this, this->randomizer.get(), evoDex.get() };
 
 	MemorySpace ancestorRecord = this->insert(config.ancestorFile);
 	if (ancestorRecord.size == 0) {
@@ -53,9 +53,7 @@ LPU* Manager::addLPU(LPUHandle predecessor, MemorySpace &&newMemoryRecord) {
 
 void Manager::removeLPU(LPUHandle handle) {
 	LPU* lpu = lpuPopulation.get(handle);
-	if (!lpu) {
-		return; // Handle already gone or invalid
-	}
+	if (!lpu) { return; } // Handle already gone or invalid
 
 	auto [rec_main, rec_off] = lpuPopulation.get(handle)->getMemRecords();
 
@@ -79,9 +77,7 @@ MemorySpace Manager::insert(const std::string &filename) {
 		return MemorySpace::EMPTY();
 	}
 
-	MemorySpace mRecord =
-		memory->allocate(memory->getMemorySize() / 2, ancestorCommands.size(), LPUHandle{})
-			.value();
+	MemorySpace mRecord = memory->allocate(memory->getMemorySize() / 2, ancestorCommands.size(), LPUHandle{}).value();
 
 	if (mRecord.size == 0) {
 		return MemorySpace::EMPTY();

@@ -1,13 +1,16 @@
 
 #include "allocStrategy.hpp"
 #include "memoryHelperStructs.hpp"
+#include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
-#include <iostream>
 
 // unnamed namespace for helper func
 namespace {
 	bool fitsBetween(uint64_t size, const MemorySpace &lower, const MemorySpace &upper) {
+		assert(upper.start >= lower.start + lower.size && "Corrupted or incorrect ordering of memory spaces!");
+
 		return (upper.start - (lower.start + lower.size)) >= size;
 	}
 } // namespace
@@ -15,12 +18,9 @@ namespace {
 std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &allocatedSpaces,
 												   uint64_t caller, uint64_t size) const {
 
-	// middle = insert index - 1 ... find index of current caller cell (find
-	// returns next index, so -1)
-	int middleIndex = allocatedSpaces.findInsertIndex(MemorySpace{caller, 0})-1;
+	size_t middleIndex = allocatedSpaces.findSpaceIndex(caller);
 
 	bool backEnd = false, frontEnd = false;
-	int backIndex, frontIndex;
 
 	// a really weird loop - if we reach both the back and the front end, then
 	// we end the loop
@@ -32,8 +32,8 @@ std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &a
 		int frontIndex = middleIndex + offset;
 
 		if (backIndex >= 0) {
-			MemorySpace back = allocatedSpaces.at(backIndex);
-			MemorySpace next = allocatedSpaces.at(backIndex + 1);
+			const MemorySpace &back = allocatedSpaces[backIndex];
+			const MemorySpace &next = allocatedSpaces[backIndex + 1];
 
 			if (fitsBetween(size, back, next)) {
 				// size of the new allocated space away from the 'next' block start
@@ -45,8 +45,8 @@ std::optional<MemorySpace> AllocFirstFit::allocate(const AllocSpacesContainer &a
 		}
 
 		if (frontIndex < allocatedSpaces.size()) {
-			MemorySpace forward = allocatedSpaces.at(frontIndex);
-			MemorySpace prev    = allocatedSpaces.at(frontIndex - 1);
+			const MemorySpace &forward = allocatedSpaces[frontIndex];
+			const MemorySpace &prev    = allocatedSpaces[frontIndex - 1];
 
 			if (fitsBetween(size, prev, forward)) {
 				// starts right after the end of prev space

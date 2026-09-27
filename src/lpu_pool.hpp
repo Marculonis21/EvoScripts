@@ -2,7 +2,6 @@
 
 #include "lpu.hpp"
 #include <cstdint>
-#include <functional>
 #include <unordered_map>
 #include <vector>
 
@@ -18,20 +17,28 @@ class LPUPool {
 	  size_t aliveSize() const;
 
 	  // universal selector, returns vec of pairs (handle, selected_value) based on some condition
-	  template<typename T>
-	  std::vector<std::pair<LPUHandle, T>> select(std::function<T(LPU*)> selector) const {
-		  std::vector<std::pair<LPUHandle, T>> output;
-		  for (size_t i = 0; i < handleQueue.size(); ++i) { 
-			  auto handle = handleQueue[i]; 
-			  auto lpu = get(handle);
-			  if (!lpu) { continue; }
+	  // template<typename T>
+	  // std::vector<std::pair<LPUHandle, T>> select(std::function<T(LPU*)> selector) const {
+		  // std::vector<std::pair<LPUHandle, T>> output;
+		  // for (size_t i = 0; i < handleQueue.size(); ++i) { 
+			  // auto handle = handleQueue[i]; 
+			  // auto lpu = get(handle);
+			  // if (!lpu) { continue; }
 
-			  T value = selector(lpu);
+			  // T value = selector(lpu);
 
-			  output.emplace_back(handle,value);
+			  // output.emplace_back(handle,value);
+		  // }
+
+		  // return output;
+	  // }
+
+	  // much faster and simpler than universal selector
+	  template<typename Func>
+	  void forEach(Func &&fn) const {
+		  for (auto &[handle, lpu] : lpuPool) {
+			  fn(handle, *lpu);
 		  }
-
-		  return output;
 	  }
 
   private:

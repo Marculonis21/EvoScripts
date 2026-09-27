@@ -30,17 +30,20 @@ void TXTFileVisualizer::print(const LPUPool &pool) const {
 	file.open(path);
 	assert(file.is_open() && "Problem opening the file for printing");
 
-	auto records = pool.select<std::pair<const MemorySpace, const MemorySpace>>([](LPU* lpu){
-				return lpu->getMemRecords();
-			});
+	// auto records = pool.select<std::pair<const MemorySpace, const MemorySpace>>([](LPU* lpu){
+	// 			return lpu->getMemRecords();
+	// 		});
 
 	std::vector<std::tuple<MemorySpace, LPUHandle, bool>> recordsList;
-	for (auto && r : records) {
-		recordsList.emplace_back(r.second.first, r.first, true);
-		if (!r.second.second.isEmpty()) {
-			recordsList.emplace_back(r.second.second, r.first, false);
-		}
-	}
+	recordsList.reserve(pool.aliveSize() * 2);
+	
+	pool.forEach([&](LPUHandle handle, const LPU &lpu) {
+			auto r = lpu.getMemRecords();
+			recordsList.emplace_back(r.first, handle, true);
+			if (!r.second.isEmpty()) {
+				recordsList.emplace_back(r.second, handle, false);
+			}
+		});
 
 	uint64_t ridx = 0;
 	std::sort(recordsList.begin(), recordsList.end(), [](const auto &a, const auto &b){ return std::get<0>(a).start < std::get<0>(b).start; }); // uff
