@@ -198,9 +198,9 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid transparent; }
 
     #sidebar-pane {
-      height: 230px;
-      min-height: 150px;
-      max-height: 380px;
+      height: 275px;
+      min-height: 160px;
+      max-height: 420px;
       background: var(--card-bg);
       border-top: 1px solid var(--border-color);
       display: flex;
@@ -227,6 +227,31 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
     .meta-table td { padding: 3px 6px; border-bottom: 1px solid rgba(48, 54, 61, 0.4); }
     .meta-table td:first-child { color: var(--text-muted); width: 130px; }
+
+    .sidebar-chrom-container {
+      margin-top: 8px;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: #161b22;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+    .sidebar-chrom-title {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-chrom-bar {
+      height: 14px;
+      background: #090d13;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      overflow: hidden;
+    }
 
     /* Resizer */
     .resizer-col {
@@ -312,6 +337,115 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     .line-no { width: 36px; text-align: right; padding-right: 10px; color: #484f58; user-select: none; flex-shrink: 0; }
     .line-op { width: 44px; color: #8b949e; flex-shrink: 0; }
     .line-name { font-weight: 500; color: #e6edf3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Opcode Semantic Syntax Highlighting */
+    .line-name.op-template { color: #d2a8ff; font-weight: 600; }
+    .line-name.op-nav      { color: #79c0ff; font-weight: 600; }
+    .line-name.op-engine   { color: #56d364; font-weight: 700; text-shadow: 0 0 6px rgba(86, 211, 100, 0.35); }
+    .line-name.op-math     { color: #ffa657; font-weight: 600; }
+    .line-name.op-stack    { color: #e3b341; font-weight: 500; }
+    .line-name.op-intron   { color: #8b949e; opacity: 0.65; font-style: italic; }
+    .line-name.op-unknown  { color: #c9d1d9; }
+
+    /* Chromosome Functional Gene Map */
+    .chromosome-container {
+      background: #161b22;
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .chrom-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chrom-label {
+      width: 140px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .chrom-track {
+      flex: 1;
+      height: 18px;
+      background: #0d1117;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+    .gene-segment {
+      height: 100%;
+      cursor: pointer;
+      position: relative;
+      transition: filter 0.15s;
+      border-right: 1px solid rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+      user-select: none;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .gene-segment:last-child { border-right: none; }
+    .gene-segment:hover {
+      filter: brightness(1.25);
+      z-index: 2;
+    }
+
+    /* Gene Category Colors */
+    .gene-origin { background: #8957e5; }
+    .gene-setup  { background: #1f6feb; }
+    .gene-alloc  { background: #00a389; }
+    .gene-loop   { background: #238636; }
+    .gene-divide { background: #3fb950; }
+    .gene-intron { background: #30363d; color: #8b949e; }
+    .gene-other  { background: #484f58; }
+    .gene-empty  {
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.05) 5px,
+        rgba(0, 0, 0, 0.35) 5px,
+        rgba(0, 0, 0, 0.35) 10px
+      );
+      border-right: none;
+      cursor: default;
+    }
+    .gene-empty:hover { filter: none !important; }
+
+    .chrom-legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .chrom-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .chrom-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      display: inline-block;
+    }
 
     /* Timeline & Scatter View */
     #timeline-view {
@@ -507,13 +641,36 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
         <div class="diff-header">
           <div class="diff-selector-group">
             <span><strong>Diff:</strong></span>
-            <label>A: <select id="diff-select-a"></select></label>
+            <label>A: <select id="diff-select-a" onchange="renderDiff()"></select></label>
             <span style="color: var(--accent); font-weight: bold;">&rarr;</span>
-            <label>B: <select id="diff-select-b"></select></label>
+            <label>B: <select id="diff-select-b" onchange="renderDiff()"></select></label>
             <button class="btn btn-compare" onclick="renderDiff()">Compare</button>
           </div>
           <div id="diff-summary" class="diff-summary-badge"></div>
         </div>
+
+        <!-- Chromosome Functional Gene Map Tracks -->
+        <div class="chromosome-container" id="chromosome-container">
+          <div class="chrom-row">
+            <span class="chrom-label" id="chrom-label-a">Species A</span>
+            <div class="chrom-track" id="chrom-track-a"></div>
+          </div>
+          <div class="chrom-row">
+            <span class="chrom-label" id="chrom-label-b">Species B</span>
+            <div class="chrom-track" id="chrom-track-b"></div>
+          </div>
+          <div class="chrom-legend">
+            <span class="chrom-legend-item"><span class="chrom-legend-dot gene-origin"></span> Origin Anchor</span>
+            <span class="chrom-legend-item"><span class="chrom-legend-dot gene-setup"></span> Setup & Navigation</span>
+            <span class="chrom-legend-item"><span class="chrom-legend-dot gene-alloc"></span> Allocation (maloc)</span>
+            <span class="chrom-legend-item"><span class="chrom-legend-dot gene-loop"></span> Copy Engine (movi)</span>
+            <span class="chrom-legend-item"><span class="chrom-legend-dot gene-divide"></span> Division (divide)</span>
+            <span class="chrom-legend-item"><span class="chrom-legend-dot gene-intron"></span> Terminal Introns</span>
+            <span class="chrom-legend-item"><span class="chrom-legend-dot" style="background: repeating-linear-gradient(-45deg, #8b949e, #8b949e 2px, #21262d 2px, #21262d 4px);"></span> Length Deficit</span>
+            <span style="margin-left: auto; color: var(--text-muted); font-size: 0.7rem;">Scaled by max length • Click segment to jump in diff</span>
+          </div>
+        </div>
+
         <div class="diff-columns-wrapper" id="diff-columns-wrapper">
           <div class="diff-col" id="diff-col-a">
             <div class="diff-col-header" id="diff-header-a">Species A</div>
@@ -1000,6 +1157,272 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       setDiffPair(fromId, toId);
     }
 
+    // ==========================================
+    // Functional Gene Map & Opcode Categorization
+    // ==========================================
+    function classifyGenomeGenes(instructions) {
+      if (!instructions || instructions.length === 0) return [];
+      const n = instructions.length;
+
+      // 1. Origin Anchor: leading sequence of nop0 / nop1
+      let originEnd = 0;
+      while (originEnd < n && (instructions[originEnd].name === 'nop0' || instructions[originEnd].name === 'nop1')) {
+        originEnd++;
+      }
+
+      const malocIdx = instructions.findIndex(op => op.name === 'maloc');
+      const divideIdx = instructions.findIndex(op => op.name === 'divide');
+      const moviIdx = instructions.findIndex(op => op.name === 'movi');
+
+      const segments = [];
+
+      // Segment 1: Origin Anchor
+      if (originEnd > 0) {
+        segments.push({
+          type: 'origin',
+          cssClass: 'gene-origin',
+          name: 'Origin Anchor (nop0/1)',
+          label: 'Origin',
+          start: 0,
+          end: originEnd - 1,
+          length: originEnd
+        });
+      }
+
+      let curr = originEnd;
+
+      if (malocIdx !== -1) {
+        // Autonomous Replicator path (has maloc)
+        if (malocIdx > curr) {
+          segments.push({
+            type: 'setup',
+            cssClass: 'gene-setup',
+            name: 'Length Setup & Navigation',
+            label: 'Setup',
+            start: curr,
+            end: malocIdx - 1,
+            length: malocIdx - curr
+          });
+        }
+
+        segments.push({
+          type: 'alloc',
+          cssClass: 'gene-alloc',
+          name: 'Offspring Allocation (maloc)',
+          label: 'maloc',
+          start: malocIdx,
+          end: malocIdx,
+          length: 1
+        });
+
+        curr = malocIdx + 1;
+
+        if (divideIdx !== -1 && divideIdx >= curr) {
+          if (divideIdx > curr) {
+            segments.push({
+              type: 'loop',
+              cssClass: 'gene-loop',
+              name: 'Replication Copy Engine',
+              label: 'Copy Loop',
+              start: curr,
+              end: divideIdx - 1,
+              length: divideIdx - curr
+            });
+          }
+
+          segments.push({
+            type: 'divide',
+            cssClass: 'gene-divide',
+            name: 'Cell Division (divide)',
+            label: 'divide',
+            start: divideIdx,
+            end: divideIdx,
+            length: 1
+          });
+
+          curr = divideIdx + 1;
+        } else if (curr < n) {
+          segments.push({
+            type: 'loop',
+            cssClass: 'gene-loop',
+            name: 'Replication Engine (Truncated)',
+            label: 'Engine',
+            start: curr,
+            end: n - 1,
+            length: n - curr
+          });
+          curr = n;
+        }
+      } else {
+        // Parasitic / Non-allocator path (lacks maloc)
+        const engineStart = moviIdx !== -1 ? moviIdx : (divideIdx !== -1 ? divideIdx : n);
+        if (engineStart > curr) {
+          segments.push({
+            type: 'setup',
+            cssClass: 'gene-setup',
+            name: 'Sensor & Navigation Setup',
+            label: 'Setup',
+            start: curr,
+            end: engineStart - 1,
+            length: engineStart - curr
+          });
+          curr = engineStart;
+        }
+
+        if (divideIdx !== -1 && divideIdx >= curr) {
+          if (divideIdx > curr) {
+            segments.push({
+              type: 'loop',
+              cssClass: 'gene-loop',
+              name: 'Parasitic Copy Engine',
+              label: 'Copy Loop',
+              start: curr,
+              end: divideIdx - 1,
+              length: divideIdx - curr
+            });
+          }
+
+          segments.push({
+            type: 'divide',
+            cssClass: 'gene-divide',
+            name: 'Cell Division (divide)',
+            label: 'divide',
+            start: divideIdx,
+            end: divideIdx,
+            length: 1
+          });
+
+          curr = divideIdx + 1;
+        } else if (curr < n) {
+          segments.push({
+            type: 'loop',
+            cssClass: 'gene-loop',
+            name: 'Residual Execution Engine',
+            label: 'Engine',
+            start: curr,
+            end: n - 1,
+            length: n - curr
+          });
+          curr = n;
+        }
+      }
+
+      // Terminal Introns after divide
+      if (curr < n) {
+        segments.push({
+          type: 'intron',
+          cssClass: 'gene-intron',
+          name: 'Terminal Introns (Non-coding)',
+          label: 'Introns',
+          start: curr,
+          end: n - 1,
+          length: n - curr
+        });
+      }
+
+      return segments;
+    }
+
+    function getEcologicalStatus(instructions) {
+      if (!instructions || instructions.length === 0) {
+        return { type: 'unknown', label: 'Unknown', color: '#8b949e', desc: 'No instructions available' };
+      }
+      const names = instructions.map(op => op.name);
+      const hasMaloc = names.includes('maloc');
+      const hasMovi = names.includes('movi');
+      const hasDivide = names.includes('divide');
+
+      if (hasMaloc && hasMovi && hasDivide) {
+        return {
+          type: 'autonomous',
+          label: '🌿 Autonomous Replicator',
+          color: '#3fb950',
+          desc: 'Self-sufficient replicator: allocates offspring buffer, copies genome, divides independently.'
+        };
+      } else if (!hasMaloc && hasMovi && hasDivide) {
+        return {
+          type: 'parasite',
+          label: '🦠 Obligate Parasite',
+          color: '#bc8cff',
+          desc: 'Non-allocator: skips maloc to replicate faster by hijacking buffers allocated by hosts.'
+        };
+      } else if (!hasMaloc && !hasDivide && hasMovi) {
+        return {
+          type: 'hyperparasite',
+          label: '🦠 Hyper-Parasite',
+          color: '#d29922',
+          desc: 'Stripped parasite: lacks maloc and divide, exploiting host execution streams.'
+        };
+      } else {
+        return {
+          type: 'mutant',
+          label: '⚠️ Non-replicating Mutant',
+          color: '#8b949e',
+          desc: 'Defective genetic fragment missing core replication primitives.'
+        };
+      }
+    }
+
+    function getOpcodeCategory(name, lineIdx, divideIdx) {
+      if (divideIdx !== -1 && lineIdx > divideIdx) {
+        return 'intron';
+      }
+      if (name === 'nop0' || name === 'nop1') return 'template';
+      if (['jmp', 'ifz', 'ifnz', 'fndf', 'fndb', 'call', 'ret'].includes(name)) return 'nav';
+      if (['maloc', 'movi', 'divide'].includes(name)) return 'engine';
+      if (name.startsWith('zero_') || name.startsWith('add_') || name.startsWith('sub_')) return 'math';
+      if (name.startsWith('push_') || name.startsWith('pop_')) return 'stack';
+      return 'unknown';
+    }
+
+    function scrollToDiffLine(colId, lineNum) {
+      const col = document.getElementById(colId);
+      if (!col) return;
+      const lineEl = col.querySelector(`.diff-line[data-line="${lineNum}"]`);
+      if (lineEl) {
+        lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        lineEl.classList.add('diff-row-hover');
+        setTimeout(() => lineEl.classList.remove('diff-row-hover'), 1400);
+      }
+    }
+
+    function renderChromosomeTrack(trackElId, colId, genes, actualLen, maxLen) {
+      const container = document.getElementById(trackElId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!genes || genes.length === 0 || actualLen === 0) {
+        container.innerHTML = '<span style="color: var(--text-muted); font-size: 0.7rem; padding: 2px 8px;">Empty</span>';
+        return;
+      }
+
+      const effectiveMax = Math.max(maxLen, actualLen, 1);
+
+      genes.forEach(gene => {
+        const pct = ((gene.length / effectiveMax) * 100).toFixed(2);
+        const seg = document.createElement('div');
+        seg.className = `gene-segment ${gene.cssClass}`;
+        seg.style.width = `${pct}%`;
+        seg.title = `${gene.name}: lines ${gene.start}–${gene.end} (${gene.length} ops, ${((gene.length / actualLen) * 100).toFixed(1)}% of genome) — click to jump in diff`;
+        if (parseFloat(pct) >= 7) {
+          seg.textContent = gene.label;
+        }
+        seg.onclick = () => scrollToDiffLine(colId, gene.start);
+        container.appendChild(seg);
+      });
+
+      // If genome is shorter than comparison maxLen, display the empty deficit
+      if (actualLen < effectiveMax) {
+        const deficit = effectiveMax - actualLen;
+        const deficitPct = ((deficit / effectiveMax) * 100).toFixed(2);
+        const emptySeg = document.createElement('div');
+        emptySeg.className = 'gene-segment gene-empty';
+        emptySeg.style.width = `${deficitPct}%`;
+        emptySeg.title = `Length Deficit: ${deficit} fewer opcodes (-${((deficit / effectiveMax) * 100).toFixed(1)}%) than comparison genome`;
+        container.appendChild(emptySeg);
+      }
+    }
+
     function inspectSpecies(handleId, autoDiff = true) {
       const s = speciesMap.get(handleId);
       if (!s) return;
@@ -1010,15 +1433,49 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       const driftHops = dnaPre.length > 1 ? dnaPre.length - 1 : 1;
       const isCollapsed = collapsedNodes.has(handleId);
 
+      const genes = classifyGenomeGenes(s.instructions || []);
+      const eco = getEcologicalStatus(s.instructions || []);
+
+      const rootSpecies = speciesMap.get(0);
+      const rootLen = rootSpecies ? rootSpecies.genome_length : s.genome_length;
+      const baselineLen = Math.max(s.genome_length, rootLen, 1);
+
+      let miniBarHtml = '';
+      if (genes.length > 0 && s.genome_length > 0) {
+        const deficit = baselineLen - s.genome_length;
+        const deficitPct = ((deficit / baselineLen) * 100).toFixed(2);
+
+        miniBarHtml = `
+          <div class="sidebar-chrom-container">
+            <div class="sidebar-chrom-title">
+              <span><strong>Functional Gene Map</strong></span>
+              <span style="font-size: 0.68rem; color: var(--text-muted);">${s.genome_length} opcodes${deficit > 0 ? ` (-${deficit} vs Founder)` : ''}</span>
+            </div>
+            <div class="sidebar-chrom-bar">
+              ${genes.map(g => {
+                const pct = ((g.length / baselineLen) * 100).toFixed(2);
+                return `<div class="gene-segment ${g.cssClass}" style="width: ${pct}%;" title="${g.name}: lines ${g.start}–${g.end} (${g.length} ops)"></div>`;
+              }).join('')}
+              ${deficit > 0 ? `<div class="gene-segment gene-empty" style="width: ${deficitPct}%;" title="Deficit: ${deficit} fewer opcodes than founder"></div>` : ''}
+            </div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; line-height: 1.3;">
+              ${eco.desc}
+            </div>
+          </div>
+        `;
+      }
+
       let html = `
         <table class="meta-table">
           <tr><td>Species Handle</td><td><strong>#${s.handle}</strong></td></tr>
+          <tr><td>Ecological Status</td><td><span class="badge" style="color: ${eco.color}; border-color: ${eco.color};">${eco.label}</span></td></tr>
           <tr><td>Parent Species</td><td><strong>#${parent}</strong></td></tr>
           <tr><td>Genome Length</td><td>${s.genome_length} opcodes</td></tr>
           <tr><td>Occurrences</td><td>${(s.occurence || 1).toLocaleString()} replicates</td></tr>
           <tr><td>Date of Birth</td><td>Epoch ${s.dob}</td></tr>
           <tr><td>Mutational Drift</td><td>${driftHops} intermediate step(s)</td></tr>
         </table>
+        ${miniBarHtml}
         <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
           <button class="btn" style="padding: 4px 8px; font-size: 0.78rem;" onclick="setAsA(${s.handle})">Set as Diff A</button>
           <button class="btn" style="padding: 4px 8px; font-size: 0.78rem;" onclick="setAsB(${s.handle})">Set as Diff B</button>
@@ -1032,17 +1489,48 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       document.getElementById('sidebar-content').innerHTML = html;
 
       if (autoDiff) {
-        if (selectA.value == handleId) {
-          setAsB(parent);
+        if (s.handle === 0) {
+          // Founder self-view / baseline
+          setDiffPair(0, 0);
         } else {
-          setAsB(handleId);
+          // Identify actual biological parent present in the current dataset
+          let pId = s.parent;
+          if (!speciesMap.has(pId) && s.dna_pre && s.dna_pre.length > 1) {
+            for (let i = 1; i < s.dna_pre.length; ++i) {
+              if (speciesMap.has(s.dna_pre[i])) {
+                pId = s.dna_pre[i];
+                break;
+              }
+            }
+          }
+          if (!speciesMap.has(pId)) pId = 0;
+          setDiffPair(pId, s.handle);
         }
       }
     }
 
-    function setAsA(id) { selectA.value = id; focusSpecies(id); renderDiff(); }
-    function setAsB(id) { selectB.value = id; focusSpecies(id); renderDiff(); }
-    function setDiffPair(idA, idB) { selectA.value = idA; selectB.value = idB; renderDiff(); }
+    function setAsA(id) {
+      if (speciesMap.has(id)) {
+        selectA.value = id;
+        focusSpecies(id);
+        renderDiff();
+      }
+    }
+
+    function setAsB(id) {
+      if (speciesMap.has(id)) {
+        selectB.value = id;
+        focusSpecies(id);
+        renderDiff();
+      }
+    }
+
+    function setDiffPair(idA, idB) {
+      if (speciesMap.has(idA)) selectA.value = idA;
+      if (speciesMap.has(idB)) selectB.value = idB;
+      renderDiff();
+    }
+
     function compareWithFounder(id) { setDiffPair(0, id); }
 
     // Longest Common Subsequence Diff Algorithm
@@ -1093,8 +1581,36 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 
       if (!spA || !spB) return;
 
-      document.getElementById('diff-header-a').textContent = `Species #${idA} (Length: ${spA.genome_length})`;
-      document.getElementById('diff-header-b').textContent = `Species #${idB} (Length: ${spB.genome_length})`;
+      const isParentChild = (spB.parent === idA || (spB.dna_pre && spB.dna_pre.includes(idA)));
+
+      if (idA === idB) {
+        document.getElementById('diff-header-a').textContent = `Species #${idA} (${spA.genome_length} ops)`;
+        document.getElementById('diff-header-b').textContent = `Species #${idB} (${spB.genome_length} ops)`;
+        document.getElementById('chrom-label-a').textContent = `#${idA} (${spA.genome_length} ops)`;
+        document.getElementById('chrom-label-b').textContent = `#${idB} (${spB.genome_length} ops)`;
+      } else if (isParentChild) {
+        document.getElementById('diff-header-a').textContent = `Parent #${idA} (${spA.genome_length} ops)`;
+        document.getElementById('diff-header-b').textContent = `Offspring #${idB} (${spB.genome_length} ops)`;
+        document.getElementById('chrom-label-a').textContent = `Parent #${idA}`;
+        document.getElementById('chrom-label-b').textContent = `Offspring #${idB}`;
+      } else {
+        document.getElementById('diff-header-a').textContent = `Species A: #${idA} (${spA.genome_length} ops)`;
+        document.getElementById('diff-header-b').textContent = `Species B: #${idB} (${spB.genome_length} ops)`;
+        document.getElementById('chrom-label-a').textContent = `A: #${idA}`;
+        document.getElementById('chrom-label-b').textContent = `B: #${idB}`;
+      }
+
+      const lenA = spA.genome_length || (spA.instructions ? spA.instructions.length : 0);
+      const lenB = spB.genome_length || (spB.instructions ? spB.instructions.length : 0);
+      const maxLen = Math.max(lenA, lenB, 1);
+
+      const genesA = classifyGenomeGenes(spA.instructions || []);
+      const genesB = classifyGenomeGenes(spB.instructions || []);
+      renderChromosomeTrack('chrom-track-a', 'diff-col-a', genesA, lenA, maxLen);
+      renderChromosomeTrack('chrom-track-b', 'diff-col-b', genesB, lenB, maxLen);
+
+      const divideIdxA = (spA.instructions || []).findIndex(op => op.name === 'divide');
+      const divideIdxB = (spB.instructions || []).findIndex(op => op.name === 'divide');
 
       const diff = computeLCSDiff(spA.instructions || [], spB.instructions || []);
 
@@ -1110,7 +1626,8 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
           htmlA += `<div class="diff-line empty" data-row="${k}"><span class="line-no"> </span></div>`;
         } else {
           const hex = '0x' + itemA.op.opcode.toString(16).padStart(2, '0');
-          htmlA += `<div class="diff-line ${itemA.type}" data-row="${k}"><span class="line-no">${itemA.line}</span><span class="line-op">${hex}</span><span class="line-name">${itemA.op.name}</span></div>`;
+          const catA = getOpcodeCategory(itemA.op.name, itemA.line, divideIdxA);
+          htmlA += `<div class="diff-line ${itemA.type}" data-row="${k}" data-line="${itemA.line}"><span class="line-no">${itemA.line}</span><span class="line-op">${hex}</span><span class="line-name op-${catA}">${itemA.op.name}</span></div>`;
           if (itemA.type === 'del') dels++;
         }
 
@@ -1118,14 +1635,21 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
           htmlB += `<div class="diff-line empty" data-row="${k}"><span class="line-no"> </span></div>`;
         } else {
           const hex = '0x' + itemB.op.opcode.toString(16).padStart(2, '0');
-          htmlB += `<div class="diff-line ${itemB.type}" data-row="${k}"><span class="line-no">${itemB.line}</span><span class="line-op">${hex}</span><span class="line-name">${itemB.op.name}</span></div>`;
+          const catB = getOpcodeCategory(itemB.op.name, itemB.line, divideIdxB);
+          htmlB += `<div class="diff-line ${itemB.type}" data-row="${k}" data-line="${itemB.line}"><span class="line-no">${itemB.line}</span><span class="line-op">${hex}</span><span class="line-name op-${catB}">${itemB.op.name}</span></div>`;
           if (itemB.type === 'add') adds++;
         }
       }
 
       document.getElementById('diff-lines-a').innerHTML = htmlA;
       document.getElementById('diff-lines-b').innerHTML = htmlB;
-      document.getElementById('diff-summary').textContent = `Diff: +${adds} added, -${dels} removed`;
+      if (idA === idB) {
+        document.getElementById('diff-summary').textContent = `Self-View: ${spA.genome_length} opcodes`;
+      } else if (adds === 0 && dels === 0) {
+        document.getElementById('diff-summary').textContent = `Identical Sequences (${spA.genome_length} opcodes)`;
+      } else {
+        document.getElementById('diff-summary').textContent = `Diff: +${adds} added, -${dels} removed`;
+      }
 
       const wrapper = document.getElementById('diff-columns-wrapper');
       if (wrapper) wrapper.scrollTop = 0;
@@ -1373,14 +1897,14 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       setDiffPair(0, handleId);
     }
 
-    // Default select first two species
+    // Default select dominant species and its parent
     if (speciesList.length >= 2) {
-      selectA.value = 0;
-      selectB.value = sortedForDropdown[0].handle === 0 ? sortedForDropdown[1].handle : sortedForDropdown[0].handle;
-      inspectSpecies(parseInt(selectB.value, 10), false);
-      renderDiff();
+      const topHandle = (sortedForDropdown[0].handle === 0 && sortedForDropdown.length > 1) 
+        ? sortedForDropdown[1].handle 
+        : sortedForDropdown[0].handle;
+      inspectSpecies(topHandle, true);
     } else if (speciesList.length === 1) {
-      inspectSpecies(speciesList[0].handle, false);
+      inspectSpecies(speciesList[0].handle, true);
     }
   </script>
 </body>
