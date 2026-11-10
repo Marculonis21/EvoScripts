@@ -44,3 +44,9 @@ if(ENABLE_SANITIZERS)
     target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
     target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address,undefined)
 endif()
+
+option(ENABLE_PROFILER "Enable internal subsystem profiler" ON)
+if(NOT ENABLE_PROFILER)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE NO_PROFILER)
+endif()
+
