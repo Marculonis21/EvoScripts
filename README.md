@@ -1,5 +1,8 @@
 *Marek Becvar*
 
+![evoscript_genome_explorer](./pics/evoscript_genome_explorer.png)
+>Current state of the visualizer.
+
 # EvoScripts
 
 Just an idea which has been probably done in different ways (and I can't
