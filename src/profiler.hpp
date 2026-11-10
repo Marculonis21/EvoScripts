@@ -16,7 +16,7 @@ enum ProfileCategory {
     PROF_COUNT
 };
 
-#ifdef NO_PROFILING
+#ifdef NO_PROFILER
 
 // Compile-time zero-overhead stub:
 // When NO_PROFILING is defined, every ProfileScope call optimizes away to literally 0 CPU instructions.

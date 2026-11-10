@@ -16,7 +16,7 @@ struct SimConfig {
 	uint64_t memorySize = 10000;
 	uint64_t maxIterations = 0; 
 	uint64_t stepsPerOrganism = 100;
-	uint64_t snapshotInterval = 1000;
+	uint64_t snapshotInterval = 10000;
 	std::string ancestorFile = "ancestors/tester.es";
 	std::string outputFile = "evodex.json";
 	bool enableProfiling = false;

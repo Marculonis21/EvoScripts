@@ -307,6 +307,9 @@ bool LPU::movi(uint64_t address) {
 	return memPtr->copy(memoryRecord, memoryRecordOffspring, regA, regB, randomizerPtr);
 }
 
+/*
+ * Push/pops of registers onto/from a common stack
+ */
 bool LPU::push_a(uint64_t address) {
 	stack.push(regA);
 	return true;
@@ -363,6 +366,9 @@ bool LPU::maloc(uint64_t address) {
 	return true;
 }
 
+/*
+ * Division operator, allowing the offspring mem space to split and born a new LPU 
+ */
 bool LPU::divide(uint64_t address) {
 	// offspring must be at least allocated
 	if (memoryRecordOffspring.isEmpty()) return false;
@@ -372,24 +378,6 @@ bool LPU::divide(uint64_t address) {
 	memoryRecordOffspring = MemorySpace::EMPTY(); // reset memoryRecordOffspring
 												  
 	evoDex->insert(*this, *offspring, metadata);
-
-	// if (metadata.instructions.vec.size() <= 10) {
-	// 	std::cout << "Parent size4 problem occurred" << std::endl;
-	// 	std::cout << "Parent MR: " << getMemRecords().first.start << "," << getMemRecords().first.size << std::endl;
-	// 	std::cout << "Offspring MR: " << offspring->getMemRecords().first.start << "," << offspring->getMemRecords().first.size << std::endl;
-
-	// 	std::cout << "Parent" << std::endl;
-	// 	for (int i = 0; i < metadata.instructions.vec.size(); ++i) {
-	// 		std::cout << this->decode_tostring(metadata.instructions.vec[i]) << std::endl;
-	// 	}
-
-	// 	std::cout << "\nOffspring" << std::endl;
-	// 	for (int i = 0; i < offspring->metadata.instructions.vec.size(); ++i) {
-	// 		std::cout << this->decode_tostring(offspring->metadata.instructions.vec[i]) << std::endl;
-	// 	}
-
-	// 	auto x = std::cin.get();
-	// }
 
 	if (*this == *offspring) { // didn't mutate -> inherit lineage
 		offspring->metadata.DNApre = std::vector(this->metadata.DNApre);

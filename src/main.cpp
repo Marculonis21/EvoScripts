@@ -13,8 +13,7 @@ int main(int argc, char *argv[]) {
                 << "  -a, --ancestor <path>     Ancestor script (default: ancestors/tester.es)\n"
                 << "  -m, --memory <size>       Virtual RAM soup size (default: 10000)\n"
                 << "  -i, --iterations <n>      Number of iterations (default: 0 = infinite)\n"
-                << "  -s, --steps <n>           Steps per creature per turn (default: 100)\n"
-                << "  -p, --snapshot <n>        Interval for writing snapshots (default: 1000)\n"
+                << "  -p, --snapshot <n>        Interval for writing snapshots (default: 10000)\n"
                 << "  --out <path>              Output file path (default: evodex.json)\n"
                 << "  -P, --profile             Enable performance subsystem breakdown\n"
                 << "  -h, --help                Show this help message\n";
@@ -25,8 +24,6 @@ int main(int argc, char *argv[]) {
             config.memorySize = std::stoull(argv[++i]);
         } else if ((arg == "-i" || arg == "--iterations") && i + 1 < argc) {
             config.maxIterations = std::stoull(argv[++i]);
-        } else if ((arg == "-s" || arg == "--steps") && i + 1 < argc) {
-            config.stepsPerOrganism = std::stoull(argv[++i]);
         } else if ((arg == "-p" || arg == "--snapshot") && i + 1 < argc) {
             config.snapshotInterval = std::stoull(argv[++i]);
         } else if (arg == "--out" && i + 1 < argc) {
